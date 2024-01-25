@@ -1,0 +1,60 @@
+@use "/src/sass/sassGlobals/" as g;
+
+.sign-up {
+    background-color: g.$backgroundColor2;
+    display: flex;
+    flex-direction: column;
+    width: g.$smallScreen-maxWidth;
+    margin: 1rem auto 2rem auto;
+    padding: 1rem 0;
+
+    @include g.breakpoint(medium) {
+        width: g.$mediumScreen-maxWidth;
+    }
+
+    &__avatar-container {
+        width: 100%;
+        background-color: g.$backgroundColor5;
+        border-bottom: .05rem solid g.$borderColor1;
+    }
+
+    &__avatar {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    form {
+        background-color: hsl(210, 29%, 9%);
+        display: flex;
+        gap: 1em;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        input {
+            width: 95%;
+            height: 2rem;
+        }
+
+        button:first-child {
+            padding-inline: 1rem;
+            font-weight: bold;
+        }
+
+        button:last-child {
+            font-weight: bold;
+        }
+    }
+
+    &__image-error {
+        color: g.$errorColor;
+        text-align: center;
+    }
+
+    &__error {
+        color: g.$errorColor;
+        text-align: left;
+        width: 95%;
+    }
+}

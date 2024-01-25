@@ -1,0 +1,120 @@
+@use "/src/sass/sassGlobals/" as g;
+
+.create-post {
+    background-color: g.$backgroundColor2;
+    width: g.$smallScreen-maxWidth;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem auto 2rem auto;
+    padding-bottom: 1rem;
+
+    @include g.breakpoint(medium) {
+        width: g.$mediumScreen-maxWidth;
+    }
+
+    &__preview-container {
+        width: 100%;
+        height: min(100vw, 38rem);
+        background-color: g.$backgroundColor5;
+        border-bottom: .05rem solid g.$borderColor1;
+    }
+
+    &__preview {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    input {
+        width: 100%;
+    }
+
+    p {
+        margin-bottom: .5rem;
+    }
+
+    &__title-wrapper {
+        width: 95%;
+        margin-inline: auto;
+    }
+
+    &__tags-wrapper {
+        width: 95%;
+        margin-inline: auto;
+    }
+
+    &__error {
+        color: g.$errorColor;
+    }
+}
+
+// SimpleMDE ----------------------------
+.create-post-editor {
+    width: g.$smallScreen-maxWidth;
+    margin-inline: auto;
+    background-color: g.$backgroundColor2;
+
+    @include g.breakpoint(medium) {
+        width: g.$mediumScreen-maxWidth;
+    }
+
+    .editor-toolbar {
+        border-color: g.$backgroundColor2;
+        display: flex;
+        gap: .2rem;
+        justify-content: center;
+
+        button {
+            background: g.$backgroundColor1;
+
+            &:hover {
+                background: g.$backgroundColor2;
+                color: g.$textColor1;
+            }
+        }
+
+        button.active {
+            background: g.$backgroundColor2;
+        }
+    }
+
+    .EasyMDEContainer {
+
+        .CodeMirror {
+            border: none;
+            border-top: .0625rem solid g.$textColor1;
+            background-color: g.$backgroundColor2;
+            color: g.$textColor1;
+
+            .CodeMirror-cursor {
+                border-left: .0625rem solid g.$featherRedColor;
+            }
+        }
+    }
+}
+
+.create-post-create-cancel {
+    width: g.$smallScreen-maxWidth;
+    display: flex;
+    justify-content: center;
+    gap: 4rem;
+    margin: 2rem auto 2rem auto;
+
+    button:first-child{
+        font-weight: bold;
+    }
+
+    button {
+        width: 100%;
+    }
+}
+
+.create-post-editor__text-error {
+    color: g.$errorColor;
+    margin-bottom: .5rem;
+    text-align: center;
+}
+
+//---------------------------------------

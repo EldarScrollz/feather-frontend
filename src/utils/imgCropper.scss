@@ -1,0 +1,34 @@
+@use "/src/sass/sassGlobals/" as g;
+
+.crop-image {
+    position: relative;
+    aspect-ratio: 1/1;
+    width: g.$smallScreen-maxWidth;
+    border-bottom: .05rem solid g.$borderColor1;
+
+    @include g.breakpoint(medium) {
+        width: g.$mediumScreen-maxWidth;
+    }
+
+    .reactEasyCrop_Container {
+        // position: inherit;
+        // width: g.$smallScreen-maxWidth;
+        // height: auto;
+
+        // .reactEasyCrop_CropArea.reactEasyCrop_CropAreaGrid {
+
+        //     &::before {}
+
+        //     &::after {}
+        // }
+    }
+
+    &__button-wrapper {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        align-items: center;
+
+        // .crop-img__button {}
+    }
+}

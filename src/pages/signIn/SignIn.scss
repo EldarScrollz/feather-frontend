@@ -1,0 +1,40 @@
+@use "/src/sass/sassGlobals/" as g;
+
+.sign-in {
+    height: 45vh;
+    width: g.$smallScreen-maxWidth;
+    margin-inline: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    p {
+        color: g.$errorColor;
+    }
+
+    &__form {
+        background-color: g.$backgroundColor2;
+        // width: 95%;
+        width: calc(min(17rem, 65vw) * 1.4);
+        display: flex;
+        gap: 1em;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: .7rem .5rem;
+        margin-top: auto;
+
+        // @include g.breakpoint(medium) {
+        //     width: g.$mediumScreen-fullMaxWidth;
+        // }
+
+        input {
+            width: 100%;
+        }
+
+        button {
+            width: 5rem;
+            font-weight: bold;
+        }
+    }
+}

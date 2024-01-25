@@ -1,0 +1,12 @@
+// For small screens
+$smallScreen-maxWidth: min(42rem, 94vw);
+$smallScreen-smallAvatarDimensions: min(6.2rem, 97vw);
+$smallScreen-fullAvatarDimensions: min(29rem, 97vw);
+
+// For medium screens
+$mediumScreen-maxWidth: min(41rem, 65vw);
+$mediumScreen-fullMaxWidth: calc($mediumScreen-maxWidth * 1.4);
+$mediumScreen-fullAvatarDimensions: min(22.4rem, 74.9vw);
+
+// For large screens
+$largeScreen-maxWidth: min(57rem, 73vw);

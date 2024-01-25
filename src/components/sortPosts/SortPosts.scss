@@ -1,0 +1,43 @@
+@use "/src/sass/sassGlobals/" as g;
+
+.sort-dropdown {
+    z-index: 1;
+    grid-column: 1/3;
+    position: relative;
+    width: max-content;
+    cursor: pointer;
+    margin: 1rem .3rem 1rem auto;
+
+    @include g.breakpoint(large) {
+        margin: 1rem 0rem 1rem auto;
+        grid-column: 1/2;
+    }
+
+    @include g.breakpoint(xlarge) {
+        grid-column: 2/3;
+    }
+
+    button {
+        background-color: g.$backgroundColor2;
+        padding: .5rem;
+        border-radius: 0;
+    }
+
+    &__menu {
+        position: absolute;
+        margin-inline: auto;
+        overflow: hidden;
+        height: 0rem;
+        transition: height .5s ease-out;
+
+        &--active {
+            height: 19.7rem;
+        }
+
+        button {
+            background-color: g.$backgroundColor3;
+            width: 100%;
+            border-bottom: .125rem solid g.$borderColor2;
+        }
+    }
+}

@@ -1,0 +1,61 @@
+@use "/src/sass/sassGlobals/" as g;
+
+.home {
+    @include g.breakpoint(medium) {
+        display: grid;
+        grid-template-columns: 68vw 1fr;
+        column-gap: 1rem;
+    }
+
+    @include g.breakpoint(large) {
+        grid-template-columns: 76vw 1fr;
+    }
+
+    @include g.breakpoint(xlarge) {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    &__posts {
+        display: grid;
+        row-gap: 2rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+
+        &--animation {
+
+            .post {
+                transform: translateX(-100vw);
+                animation: homePostsSlideIn .5s ease-out forwards;
+
+                @for $i from 1 to 20 {
+                    &:nth-child(#{$i}) {
+                        animation-delay: $i * 0.2s;
+                    }
+                }
+
+                @keyframes homePostsSlideIn {
+
+                    from {
+                        opacity: 0%;
+                    }
+
+                    to {
+                        opacity: 100%;
+                        transform: translateX(0vw);
+                    }
+                }
+            }
+        }
+
+        @include g.breakpoint(medium) {
+            grid-column: 1/2;
+            justify-content: end;
+            margin-bottom: 2rem;
+        }
+
+        @include g.breakpoint(xlarge) {
+            grid-column: 2/3;
+            grid-row: 2/3;
+        }
+    }
+}

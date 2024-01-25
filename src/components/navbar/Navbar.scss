@@ -1,0 +1,144 @@
+@use "/src/sass/sassGlobals/" as g;
+
+.navbar-wrapper {
+    background-color: hsl(200, 29%, 5%);
+    border-bottom: .1rem solid g.$borderColor1;
+    z-index: 900; // 2
+    padding-top: .5rem;
+
+    @include g.breakpoint(medium) {
+        position: sticky;
+        top: 0;
+    }
+}
+
+.navbar {
+    max-width: 60rem;
+    margin-inline: auto;
+
+    @include g.breakpoint(medium) {
+        display: flex;
+    }
+
+    &__logo {
+        width: 100%;
+        // border-bottom: .1rem solid g.$borderColor1;
+
+        @include g.breakpoint(medium) {
+            width: auto;
+        }
+
+        a {
+            display: flex;
+            width: 3.5rem;
+
+            img {
+                width: 3.5rem;
+            }
+        }
+    }
+
+    &__options-wrapper {
+        z-index: 900; // 2
+        position: fixed;
+        right: 0;
+        top: 0;
+        width: 50vw;
+        height: 100vh;
+        background-color: g.$backgroundColor3;
+        transition: translate .3s ease-out;
+        translate: 100%;
+
+        @include g.breakpoint(medium) {
+            position: static;
+            height: auto;
+            width: 100%;
+            transition: none;
+            translate: 0%;
+            display: flex;
+            justify-content: flex-end;
+            background-color: transparent;
+        }
+
+        &--active {
+            translate: 0%;
+        }
+    }
+
+    &__options {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        margin-top: 1rem;
+        font-weight: bold;
+
+        @include g.breakpoint(medium) {
+            margin: 0 1rem 0 0;
+            flex-direction: row;
+        }
+
+        a:first-child {
+            margin-top: 4.5rem;
+
+            @include g.breakpoint(medium) {
+                margin-top: 0;
+            }
+        }
+
+        a {
+            color: g.$featherRedColor;
+            transition: transform 1s ease-in-out, filter 1s ease-in-out;
+
+            @include g.breakpoint(large) {
+                &:hover {
+                    transform: scale(1.2);
+                    filter: brightness(200%);
+                    transition: transform .2s ease-in-out, filter .2s ease-in-out;
+                }
+            }
+        }
+
+        button {
+            color: g.$featherRedColor;
+            background-color: inherit;
+            border: none;
+            padding: 0;
+            font-weight: bold;
+            transition: transform 1s ease-in-out, filter 1s ease-in-out;
+
+
+            @include g.breakpoint(large) {
+                &:hover {
+                    transform: scale(1.2);
+                    filter: brightness(200%);
+                    transition: transform .2s ease-in-out, filter .2s ease-in-out;
+                }
+            }
+        }
+    }
+
+    &__hamburger-menu {
+        color: inherit;
+        background-color: transparent;
+        border: none;
+        padding: 0;
+        z-index: 901; // 1 (highest one)
+        position: fixed;
+        right: 1.25rem;
+        top: 1.25rem;
+        display: grid;
+        gap: .5rem;
+
+        @include g.breakpoint(medium) {
+            display: none;
+        }
+
+        &-bar {
+            background-color: g.$featherRedColor;
+            width: min(1.875rem, 8vw);
+            height: min(0.25rem, 1.3vw);
+            border-bottom: min(0.125rem, .7vw) solid g.$backgroundColor1;
+        }
+    }
+}

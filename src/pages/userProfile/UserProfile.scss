@@ -1,0 +1,142 @@
+@use "/src/sass/sassGlobals/" as g;
+
+.user-profile {
+    background-color: g.$backgroundColor2;
+    width: g.$smallScreen-maxWidth;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-direction: column;
+    margin: 1rem auto 1rem auto;
+    padding-bottom: 1rem;
+
+    @include g.breakpoint(medium) {
+        width: g.$mediumScreen-maxWidth;
+    }
+
+    &__avatar-container {
+        width: 100%;
+        background-color: g.$backgroundColor5;
+        border-bottom: .05rem solid g.$borderColor1;
+    }
+
+    &__avatar {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    &__name {
+        width: 95%;
+        display: flex;
+        flex-direction: column;
+        gap: .2rem;
+        margin-inline: auto;
+
+        input {
+            width: 100%;
+        }
+    }
+
+    &__email {
+        width: 95%;
+        display: flex;
+        flex-direction: column;
+        gap: .2rem;
+        margin-inline: auto;
+
+        input {
+            width: 100%;
+        }
+    }
+
+    &__change-password {
+        width: 95%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        max-height: 0rem;
+        transition: max-height .5s ease-in-out;
+
+        div:first-child {
+            margin-bottom: 1.5rem;
+        }
+
+        div {
+            display: flex;
+            flex-direction: column;
+            gap: .2rem;
+
+            input {
+                width: 100%;
+            }
+        }
+
+    }
+
+    &:has(&__password-checkbox:checked) {
+
+        .user-profile__change-password {
+            max-height: 19.9rem;
+        }
+    }
+
+    &__submit-form {
+        margin: .5rem 1rem;
+        font-weight: bold;
+    }
+
+    &-delete {
+        width: g.$smallScreen-maxWidth;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin: 4rem auto 1rem auto;
+        overflow: hidden;
+        max-height: 2.6rem;
+        background-color: hsla(210, 29%, 9%, 0);
+        transition: max-height .5s ease-in-out, background-color .5s ease-in-out;
+
+        @include g.breakpoint(medium) {
+            width: g.$mediumScreen-maxWidth;
+        }
+
+        &:has(&__checkbox:checked) {
+            max-height: 14rem;
+            background-color: g.$backgroundColor2;
+        }
+
+        button {
+            width: max-content;
+            margin: .5rem 0 0 .5rem;
+            background-color: g.$featherRedColor;
+        }
+
+        &__confirm {
+            width: 100%;
+            padding: 1rem .5rem;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+
+
+            input {
+                width: 100%;
+            }
+
+            button {
+                margin-inline: auto;
+            }
+        }
+    }
+
+    &__image-error {
+        color: g.$errorColor;
+        text-align: center;
+    }
+
+    &__error-text {
+        color: g.$errorColor;
+    }
+}
