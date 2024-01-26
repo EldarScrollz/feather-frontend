@@ -84,7 +84,8 @@
     }
 
     &__reply-confirm {
-        margin: 0rem auto 1rem auto;
+        margin: 0 auto;
+        min-width: 9rem;
     }
 
     &-error-msg {

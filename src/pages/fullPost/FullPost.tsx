@@ -194,9 +194,9 @@ export const FullPost = () =>
 
 
     // Checks ----------------------------------------------------------------------------------------------------------------------
-    if (userInfo.userData === null) return <h2 style={{ height: "78vh", display: "flex", justifyContent: "center", alignItems: "center" }}>{"Sign in to view the post"}</h2>;
-
     if (!fullPostData || !postComments || isFullPostLoading) return <LoadingScreen />; // typescript check
+    
+    if (userInfo.userData === null) return <h2 style={{ height: "78vh", display: "flex", justifyContent: "center", alignItems: "center" }}>{"Sign in to view the post"}</h2>;
     //------------------------------------------------------------------------------------------------------------------------------
 
 
