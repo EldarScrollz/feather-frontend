@@ -82,8 +82,8 @@ const postSlice = createSlice(
                         state.posts.items = sortResult as [];
                         break;
                 }
-            },               //(state: { posts: { items: { heartsCount: { count: number; }, _id: string; }[]; }; }, action)
-            updateHeartsCount: (state: {posts:{items:{_id: string ,heartsCount: number}[]}}, action) =>
+            },
+            updateHeartsCount: (state: { posts: { items: { _id: string, heartsCount: number; }[]; }; }, action) =>
             {
                 state.posts.items.forEach((e, index) => 
                 {

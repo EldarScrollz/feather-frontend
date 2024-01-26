@@ -134,7 +134,7 @@ export const CreatePost = () =>
                 postImg: (croppedImgPath) ? croppedImgPath : (postImgUrl === noPostImgUrl) ? process.env.REACT_APP_NOIMG : postImgPath,
             };
 
-            // If original image hasn't been affected then do not delete it
+            // If original image hasn't been affected - do not delete it
             const oldPostImgQuery = (postImgUrl === noPostImgUrl) ? `/?oldPostImg=${postImgPath}` : "";
             const { data } = idFromLink
                 ? await customAxios.patch(`/posts/${idFromLink}${oldPostImgQuery}`, body)
