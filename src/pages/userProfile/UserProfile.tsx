@@ -125,13 +125,14 @@ export const UserProfile = () =>
     //-----------------------------------------------------------------------------------------------------------------------
 
 
-    const handleConfirmAccountDelete = async () =>
+    const handleAccountDelete = async () =>
     {
         try
         {
             await customAxios.delete(`/auth/deleteProfile/${auth.userData._id}/${deleteUserPassword}`);
             dispatch(signOut());
-            window.localStorage.removeItem("jsonWebToken");
+            // window.localStorage.removeItem("accessToken");
+            // todo: remove access token on the server.
             navigate("/");
         }
         catch (error: any) 
@@ -302,7 +303,7 @@ export const UserProfile = () =>
                 </div>
             </div>
 
-            {showModal && <Modal text={"Delete the account?"} setShowModal={setShowModal} performAction={() => handleConfirmAccountDelete()} />}
+            {showModal && <Modal text={"Delete the account?"} setShowModal={setShowModal} performAction={() => handleAccountDelete()} />}
         </>
     );
 };;

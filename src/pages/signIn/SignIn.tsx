@@ -45,7 +45,7 @@ export const SignIn = () =>
         const data = await dispatch(fetchAuth(onSubmitValues));
 
         if (!data.payload) { return setShowUser404(true); }
-        if ("jsonWebToken" in data.payload) { window.localStorage.setItem("jsonWebToken", data.payload.jsonWebToken); }
+        // if ("accessToken" in data.payload) { window.localStorage.setItem("accessToken", data.payload.accessToken); }
     };
 
 

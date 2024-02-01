@@ -3,8 +3,6 @@ import customAxios from "../../axiosSettings";
 import { IOnSubmitProps } from '../../pages/signIn/SignIn';
 import { RootState } from '../store';
 
-
-
 export const fetchAuth = createAsyncThunk('auth/fetchAuth', async (params: IOnSubmitProps) =>
 {
     const { data } = await customAxios.post("/auth/login", params);

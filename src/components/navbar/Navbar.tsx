@@ -38,7 +38,8 @@ export const Navbar = () =>
 
     const handleSignOut = () => 
     {
-        dispatch(signOut()); window.localStorage.removeItem("jsonWebToken");
+        // dispatch(signOut()); window.localStorage.removeItem("accessToken");
+        // todo: should remove accessToken on the server.
         navigate("/");
     };
 

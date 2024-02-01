@@ -23,9 +23,9 @@ import { PulseLoader } from "react-spinners";
 import { formatRelativeTime } from "../../utils/relativeTimeFormatter";
 import { Modal } from "../../components/modal/Modal";
 import { fetchPosts } from "../../redux/slices/postsSlice";
+import { fetchMe } from "../../redux/slices/authSlice";
 
-export interface IComments
-{
+export interface IComments {
     _id: string,
     postId: string,
     commentParentId: string,
@@ -44,8 +44,7 @@ export interface IComments extends Array<IComments> { }
 
 
 
-export const FullPost = () =>
-{
+export const FullPost = () => {
     const { id: postId } = useParams();
 
     const userInfo = useAppSelector((state) => state.auth as { userData: { _id: string, userAvatar: string; }, status: string; });
@@ -71,15 +70,14 @@ export const FullPost = () =>
 
 
 
-    useEffect(() =>
-    {
-        if (userInfo.userData)
-        {
-            try
-            {
-                (async () =>
-                {
+    useEffect(() => {
+        if (userInfo.userData) {
+            (async () => {
+                try {
                     const { data: postData } = await customAxios.get(`/posts/${postId}`);
+
+                    console.log("postData", postData);
+
                     setFullPostData(postData);
                     setHeartsCount(postData.heartsCount);
                     setFullPostCommentsCount(postData.commentsCount);
@@ -90,33 +88,31 @@ export const FullPost = () =>
 
                     const { data: commentsData } = await customAxios.get(`/comments/${postId}`);
                     setPostComments(commentsData);
-                })();
-            }
-            catch (error) { console.error("Could not get the all the fullpost data", error); }
-            finally { setIsFullPostloading(false); }
+                } catch (error) {
+                    console.error("Could not get the all the fullpost data", error);
+                    dispatch(fetchMe());
+                }
+                finally { setIsFullPostloading(false); }
+            })();
         }
     }, [userInfo, postId]);
 
 
 
-    const addRemoveHeart = async () =>
-    {
+    const addRemoveHeart = async () => {
         setIsHeartLoading(true);
 
-        try
-        {
+        try {
             if (!fullPostData) return; // typescript check
 
-            if (!isUserInHearts)
-            {
+            if (!isUserInHearts) {
                 await customAxios.post(`/hearts/${fullPostData?._id}`);
 
                 setHeartsCount(prev => prev + 1);
 
                 setIsUserInHearts(true);
             }
-            else if (isUserInHearts)
-            {
+            else if (isUserInHearts) {
                 await customAxios.delete(`/hearts?postId=${fullPostData?._id}&userId=${userInfo.userData._id}`);
 
                 setHeartsCount(prev => prev - 1);
@@ -131,24 +127,20 @@ export const FullPost = () =>
 
 
 
-    const deletePost = async () =>
-    {
-        try
-        {
+    const deletePost = async () => {
+        try {
             await customAxios.delete(`/posts/${fullPostData?._id}`);
             dispatch(fetchPosts());
             navigate("/");
         }
-        catch (error)
-        {
+        catch (error) {
             console.error("Could not delete the post!", error);
         }
     };
 
 
 
-    const resizeTextarea = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    {
+    const resizeTextarea = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         e.target.style.height = 'inherit';
         e.target.style.height = `${e.target.scrollHeight}px`;
 
@@ -161,8 +153,7 @@ export const FullPost = () =>
 
 
 
-    const createComment = async () =>
-    {
+    const createComment = async () => {
         if (createdCommentErrorMsg.length > 0) return;
         if (!createdCommentText) return;
 
@@ -176,8 +167,7 @@ export const FullPost = () =>
             user: userInfo.userData._id,
         };
 
-        try
-        {
+        try {
             await customAxios.post("/comments", body);
             await customAxios.get(`/comments/${postId}`).then((res) => { setPostComments(res.data); });
         }
@@ -195,7 +185,12 @@ export const FullPost = () =>
 
     // Checks ----------------------------------------------------------------------------------------------------------------------
     if (userInfo.status !== "loading" && userInfo.userData === null) return <h2 style={{ height: "78vh", display: "flex", justifyContent: "center", alignItems: "center" }}>{"Sign in to view the post"}</h2>;
-    
+
+    console.log("fullPostData", fullPostData);
+    console.log("postComments", postComments);
+    console.log("isFullpostLoading", isFullPostLoading);
+
+
     if (!fullPostData || !postComments || isFullPostLoading) return <LoadingScreen />; // typescript check
     //------------------------------------------------------------------------------------------------------------------------------
 
@@ -249,24 +244,24 @@ export const FullPost = () =>
             </div>
 
             <div className="full-post__comments-section">
-                    {createdCommentErrorMsg && <p className="full-post__error-msg">{createdCommentErrorMsg}</p>}
+                {createdCommentErrorMsg && <p className="full-post__error-msg">{createdCommentErrorMsg}</p>}
 
-                    <div className="full-post__comment-form">
-                        <img src={process.env.REACT_APP_BACKEND + userInfo.userData.userAvatar} alt="Your avatar" />
+                <div className="full-post__comment-form">
+                    <img src={process.env.REACT_APP_BACKEND + userInfo.userData.userAvatar} alt="Your avatar" />
 
-                        <div className="full-post__comment-form-input">
-                            <textarea ref={textareaRef} placeholder="Add a comment..." rows={1} onChange={(e) => resizeTextarea(e)} />
+                    <div className="full-post__comment-form-input">
+                        <textarea ref={textareaRef} placeholder="Add a comment..." rows={1} onChange={(e) => resizeTextarea(e)} />
 
-                            <div className="full-post__comment-form-buttons">
-                                <button className="full-post__clear-comment-text" onClick={() => { textareaRef.current!.value = ""; setCreatedCommentText(""); textareaRef.current && (textareaRef.current.style.height = "29px"); }}>clear</button>
-                                
-                                {!isCommentLoading
-                                    ? <button className="full-post__create-comment" onClick={createComment}>comment</button>
-                                    : <button><PulseLoader color={"#c52b2b"} size={7} /></button>
-                                }
-                            </div>
+                        <div className="full-post__comment-form-buttons">
+                            <button className="full-post__clear-comment-text" onClick={() => { textareaRef.current!.value = ""; setCreatedCommentText(""); textareaRef.current && (textareaRef.current.style.height = "29px"); }}>clear</button>
+
+                            {!isCommentLoading
+                                ? <button className="full-post__create-comment" onClick={createComment}>comment</button>
+                                : <button><PulseLoader color={"#c52b2b"} size={7} /></button>
+                            }
                         </div>
                     </div>
+                </div>
 
                 {postComments.filter(e => e.commentParentId === null).map((e) => { return <Comment key={e._id} comment={e} fullPostCommentsCount={fullPostCommentsCount} setFullPostCommentsCount={setFullPostCommentsCount} />; })}
             </div>

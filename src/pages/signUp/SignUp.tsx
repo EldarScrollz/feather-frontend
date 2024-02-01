@@ -66,7 +66,7 @@ export const SignUp = () =>
 
         if (data.payload.errorMessage) return setEmailNameError(data.payload.errorMessage);
 
-        if ("jsonWebToken" in data.payload) { window.localStorage.setItem("jsonWebToken", data.payload.jsonWebToken); }
+        // if ("accessToken" in data.payload) { window.localStorage.setItem("accessToken", data.payload.accessToken); }
     };
 
 
