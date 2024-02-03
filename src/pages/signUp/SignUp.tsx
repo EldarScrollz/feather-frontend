@@ -65,8 +65,6 @@ export const SignUp = () =>
         const data = await dispatch(fetchRegister(props));
 
         if (data.payload.errorMessage) return setEmailNameError(data.payload.errorMessage);
-
-        // if ("accessToken" in data.payload) { window.localStorage.setItem("accessToken", data.payload.accessToken); }
     };
 
 

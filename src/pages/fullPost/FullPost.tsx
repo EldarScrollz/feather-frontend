@@ -23,7 +23,7 @@ import { PulseLoader } from "react-spinners";
 import { formatRelativeTime } from "../../utils/relativeTimeFormatter";
 import { Modal } from "../../components/modal/Modal";
 import { fetchPosts } from "../../redux/slices/postsSlice";
-import { fetchMe } from "../../redux/slices/authSlice";
+import { signOut } from "../../redux/slices/authSlice";
 
 export interface IComments {
     _id: string,
@@ -76,8 +76,6 @@ export const FullPost = () => {
                 try {
                     const { data: postData } = await customAxios.get(`/posts/${postId}`);
 
-                    console.log("postData", postData);
-
                     setFullPostData(postData);
                     setHeartsCount(postData.heartsCount);
                     setFullPostCommentsCount(postData.commentsCount);
@@ -88,9 +86,10 @@ export const FullPost = () => {
 
                     const { data: commentsData } = await customAxios.get(`/comments/${postId}`);
                     setPostComments(commentsData);
-                } catch (error) {
+                } catch (error: any) {
                     console.error("Could not get the all the fullpost data", error);
-                    dispatch(fetchMe());
+                    
+                    if (error.response.status === 403) dispatch(signOut());
                 }
                 finally { setIsFullPostloading(false); }
             })();
@@ -185,11 +184,6 @@ export const FullPost = () => {
 
     // Checks ----------------------------------------------------------------------------------------------------------------------
     if (userInfo.status !== "loading" && userInfo.userData === null) return <h2 style={{ height: "78vh", display: "flex", justifyContent: "center", alignItems: "center" }}>{"Sign in to view the post"}</h2>;
-
-    console.log("fullPostData", fullPostData);
-    console.log("postComments", postComments);
-    console.log("isFullpostLoading", isFullPostLoading);
-
 
     if (!fullPostData || !postComments || isFullPostLoading) return <LoadingScreen />; // typescript check
     //------------------------------------------------------------------------------------------------------------------------------

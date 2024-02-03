@@ -22,8 +22,7 @@ import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
 import { Modal } from "../../components/modal/Modal";
 import { fetchPosts } from "../../redux/slices/postsSlice";
 
-interface IUserData
-{
+interface IUserData {
     email: string,
     name: string,
     isChangePassword: boolean | undefined,
@@ -34,8 +33,7 @@ interface IUserData
 
 
 
-export const UserProfile = () =>
-{
+export const UserProfile = () => {
     const navigate = useNavigate();
 
     const dispatch = useAppDispatch();
@@ -70,10 +68,8 @@ export const UserProfile = () =>
 
 
 
-    useEffect(() =>
-    {
-        if (auth.userData?.userAvatar && auth.userData?.userAvatar !== process.env.REACT_APP_NOIMG as string)
-        {
+    useEffect(() => {
+        if (auth.userData?.userAvatar && auth.userData?.userAvatar !== process.env.REACT_APP_NOIMG as string) {
             setAvatarPath(auth.userData?.userAvatar);
             setAvatarUrl(process.env.REACT_APP_BACKEND + auth.userData?.userAvatar);
         }
@@ -106,8 +102,7 @@ export const UserProfile = () =>
     const { register, handleSubmit, setError, formState: { errors }, setValue } = useForm<IUserData>(
         {
             resolver: yupResolver(schema),
-            defaultValues: async () =>
-            {
+            defaultValues: async () => {
                 const res = await customAxios.get("/auth/me");
 
                 setisProfileLoading(false);
@@ -125,38 +120,30 @@ export const UserProfile = () =>
     //-----------------------------------------------------------------------------------------------------------------------
 
 
-    const handleAccountDelete = async () =>
-    {
-        try
-        {
+    const handleAccountDelete = async () => {
+        try {
             await customAxios.delete(`/auth/deleteProfile/${auth.userData._id}/${deleteUserPassword}`);
             dispatch(signOut());
-            // window.localStorage.removeItem("accessToken");
-            // todo: remove access token on the server.
             navigate("/");
         }
-        catch (error: any) 
-        {
+        catch (error: any) {
             console.error("Could not delete the user", error);
             setDeleteProfileError(error.response.data.errorMessage);
         }
     };
 
 
-    const onSubmit = async (onSubmitValues: IUserData) =>
-    {
+    const onSubmit = async (onSubmitValues: IUserData) => {
         if (imgExtError !== "") return;
 
         setIsSubmitLoading(true);
 
-        try
-        {
+        try {
             const croppedImgPath = await uploadImage(croppedAvatarFile as File);
             const oldAvatarQuery = croppedImgPath ? `/?oldAvatar=${avatarPath}` : "";
             const userAvatarToSet = croppedImgPath ? croppedImgPath : avatarPath;
 
-            if (onSubmitValues.isChangePassword) 
-            {
+            if (onSubmitValues.isChangePassword) {
                 await customAxios.patch(`auth/editProfile${oldAvatarQuery}`,
                     {
                         email: onSubmitValues.email,
@@ -168,8 +155,7 @@ export const UserProfile = () =>
                         confirmNewPassword: onSubmitValues.confirmNewPassword,
                     });
             }
-            else
-            {
+            else {
                 await customAxios.patch(`auth/editProfile${oldAvatarQuery}`,
                     {
                         email: onSubmitValues.email,
@@ -233,8 +219,7 @@ export const UserProfile = () =>
                     : <button type="button" onClick={() => inputFileRef.current?.click()}>Select avatar</button>
                 }
 
-                <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={(e) =>
-                {
+                <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={(e) => {
                     if (!inputFileRef.current?.files) return; //typescript check
 
                     // Size check

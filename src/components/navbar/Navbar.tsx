@@ -1,6 +1,9 @@
 import "./Navbar.scss";
 import logo from "./featherLogo.svg";
 
+import customAxios from "../../axiosSettings";
+
+
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
@@ -11,8 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { Modal } from "../modal/Modal";
 
 
-export const Navbar = () =>
-{
+export const Navbar = () => {
     const navigate = useNavigate();
 
     const dispatch = useAppDispatch();
@@ -27,8 +29,7 @@ export const Navbar = () =>
 
 
     // Close hamburger menu when clicking outside of it
-    useEffect(() =>
-    {
+    useEffect(() => {
         const closeHamMenu = (e: MouseEvent) => { !navbarRef.current?.contains(e.target as HTMLElement) && setShowHamMenu(false); };
         document.addEventListener("click", closeHamMenu);
         return () => { document.removeEventListener("click", closeHamMenu); };
@@ -36,10 +37,9 @@ export const Navbar = () =>
 
 
 
-    const handleSignOut = () => 
-    {
-        // dispatch(signOut()); window.localStorage.removeItem("accessToken");
-        // todo: should remove accessToken on the server.
+    const handleSignOut = async () => {
+        await customAxios.post(`/auth/logout`);
+        dispatch(signOut());
         navigate("/");
     };
 

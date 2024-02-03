@@ -1,22 +1,19 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import customAxios from "../../axiosSettings";
 
-export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () =>
-{
+export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
     const { data } = await customAxios.get("/posts");
     return data;
 });
 
-export const fetchTopTags = createAsyncThunk("posts/fetchTopTags", async () =>
-{
+export const fetchTopTags = createAsyncThunk("posts/fetchTopTags", async () => {
     const { data } = await customAxios.get("/posts/topTags");
     return data;
 });
 
 
 
-interface IPostsState
-{
+interface IPostsState {
     posts: {
         items: [],
         status: string;
@@ -46,12 +43,10 @@ const postSlice = createSlice(
         initialState,
         reducers:
         {
-            sortPost: (state, action) =>
-            {
+            sortPost: (state, action: PayloadAction<string>) => {
                 let sortResult = [];
 
-                switch (action.payload)
-                {
+                switch (action.payload) {
                     case "new posts":
                         sortResult = [...state.posts.items].sort((a: { createdAt: Date; }, b: { createdAt: Date; }) => { return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); });
                         state.posts.items = sortResult as [];
@@ -83,48 +78,39 @@ const postSlice = createSlice(
                         break;
                 }
             },
-            updateHeartsCount: (state: { posts: { items: { _id: string, heartsCount: number; }[]; }; }, action) =>
-            {
-                state.posts.items.forEach((e, index) => 
-                {
+            updateHeartsCount: (state: { posts: { items: { _id: string, heartsCount: number; }[]; }; }, action: PayloadAction<{ _id: string, count: number; }>) => {
+                state.posts.items.forEach((e, index) => {
                     if (e._id === action.payload._id) { state.posts.items[index].heartsCount = action.payload.count; }
                 });
             }
         },
-        extraReducers: (builder) =>
-        {
+        extraReducers: (builder) => {
             // Posts:
-            builder.addCase(fetchPosts.pending, (state) => 
-            {
+            builder.addCase(fetchPosts.pending, (state) => {
                 state.posts.items = [];
                 state.posts.status = "loading";
             });
-            builder.addCase(fetchPosts.fulfilled, (state, action) => 
-            {
+            builder.addCase(fetchPosts.fulfilled, (state, action) => {
                 const initialSortedPosts = [...action.payload].sort((a: { createdAt: Date; }, b: { createdAt: Date; }) => { return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); });
 
-                state.posts.items = /* action.payload */ initialSortedPosts as [];
+                state.posts.items = initialSortedPosts as [];
                 state.posts.status = "loaded";
             });
-            builder.addCase(fetchPosts.rejected, (state) => 
-            {
+            builder.addCase(fetchPosts.rejected, (state) => {
                 state.posts.items = [];
                 state.posts.status = "error";
             });
             //-----------------------------------------------------
             // Tags:
-            builder.addCase(fetchTopTags.pending, (state) => 
-            {
+            builder.addCase(fetchTopTags.pending, (state) => {
                 state.tags.items = [];
                 state.posts.status = "loading";
             });
-            builder.addCase(fetchTopTags.fulfilled, (state, action) => 
-            {
+            builder.addCase(fetchTopTags.fulfilled, (state, action) => {
                 state.tags.items = action.payload;
                 state.tags.status = "loaded";
             });
-            builder.addCase(fetchTopTags.rejected, (state) => 
-            {
+            builder.addCase(fetchTopTags.rejected, (state) => {
                 state.tags.items = [];
                 state.tags.status = "error";
             });
