@@ -1,39 +1,38 @@
+import { IUser } from '../../models/IUser';
+
+import {axiosCustom} from "../../axiosSettings";
+
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import customAxios from "../../axiosSettings";
-import { IOnSubmitProps } from '../../pages/signIn/SignIn';
 import { RootState } from '../store';
 
-export const fetchAuth = createAsyncThunk('auth/fetchAuth', async (params: IOnSubmitProps) =>
-{
-    const { data } = await customAxios.post("/auth/login", params);
+
+
+//==============================================
+// Server calls.
+//==============================================
+export const fetchAuth = createAsyncThunk('auth/fetchAuth', async (params: { email: string, password: string; }) => {
+    const { data } = await axiosCustom.post("/auth/login", params);
+    return data;
+});
+
+export const fetchMe = createAsyncThunk('auth/fetchMe', async () => {
+    const { data } = await axiosCustom.get("/auth/me");
+    return data;
+});
+
+export const fetchRegister = createAsyncThunk('auth/fetchRegister', async (params: { email: string, password: string; }) => {
+    const data = await axiosCustom.post("/auth/register", params).then((res) => res.data).catch((error) => error.response.data);
     return data;
 });
 
 
 
-export const fetchMe = createAsyncThunk('auth/fetchMe', async () =>
-{
-        const { data } = await customAxios.get("/auth/me");
-        return data;
-});
-
-
-
-export const fetchRegister = createAsyncThunk('auth/fetchRegister', async (params: IOnSubmitProps) =>
-{
-    const data = await customAxios.post("/auth/register", params).then((res) => res.data).catch((error) => error.response.data);
-    return data;
-});
-
-
-
-interface AuthState
-{
-    userData: { errorMessage?: string; } | null,
+interface IAuthState {
+    userData: IUser | null,
     status: string;
 }
 
-const initialState: AuthState =
+const initialState: IAuthState =
 {
     userData: null,
     status: "loading"
@@ -44,59 +43,48 @@ const authSlice = createSlice(
         name: "auth",
         initialState,
         reducers: {
-            signOut: (state) =>
-            {
+            signOut: (state) => {
                 state.userData = null;
             }
         },
-        extraReducers: (builder) =>
-        {
+        extraReducers: (builder) => {
             // fetchAuth
-            builder.addCase(fetchAuth.pending, (state) => 
-            {
+            builder.addCase(fetchAuth.pending, (state) => {
                 state.userData = null;
                 state.status = "loading";
             });
-            builder.addCase(fetchAuth.fulfilled, (state, action) => 
-            {
+            builder.addCase(fetchAuth.fulfilled, (state, action) => {
                 state.userData = action.payload;
                 state.status = "loaded";
             });
-            builder.addCase(fetchAuth.rejected, (state) => 
-            {
+            builder.addCase(fetchAuth.rejected, (state) => {
                 state.userData = null;
                 state.status = "error";
             });
             //-------------------------------------------------------
             // fetchMe
-            builder.addCase(fetchMe.pending, (state) => 
-            {
+            builder.addCase(fetchMe.pending, (state) => {
                 state.userData = null;
                 state.status = "loading";
             });
-            builder.addCase(fetchMe.fulfilled, (state, action) => 
-            {
+            builder.addCase(fetchMe.fulfilled, (state, action) => {
                 state.userData = action.payload;
                 state.status = "loaded";
             });
-            builder.addCase(fetchMe.rejected, (state) => 
-            {
+            builder.addCase(fetchMe.rejected, (state) => {
                 state.status = "error";
             });
             //-------------------------------------------------------
             // fetchRegister
-            builder.addCase(fetchRegister.pending, (state) => 
-            {
+            builder.addCase(fetchRegister.pending, (state) => {
                 state.userData = null;
                 state.status = "loading";
             });
-            builder.addCase(fetchRegister.fulfilled, (state, action) => 
-            {
+            builder.addCase(fetchRegister.fulfilled, (state, action) => {
                 state.userData = action.payload;
                 state.status = "loaded";
             });
-            builder.addCase(fetchRegister.rejected, (state) => 
-            {
+            builder.addCase(fetchRegister.rejected, (state) => {
                 state.userData = null;
                 state.status = "error";
             });
@@ -105,7 +93,9 @@ const authSlice = createSlice(
     }
 );
 
-export const selectIsAuth = (state: RootState) => { if (state.auth.userData !== null && !state.auth.userData.errorMessage) { return true; } else { return false; } };
+
+
+export const isCurrentUserSignedIn = (state: RootState) => { if (state.auth.userData) { return true; } else { return false; } };
 
 export const authReducer = authSlice.reducer;
 export const { signOut } = authSlice.actions;

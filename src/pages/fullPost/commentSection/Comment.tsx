@@ -1,29 +1,28 @@
 import "./Comment.scss";
 
-import customAxios from "../../../axiosSettings";
+import { IComment } from "../../../models/IComment";
+
+import {axiosCustom} from "../../../axiosSettings";
 
 import { useAppSelector } from "../../../redux/hooks";
 import { useEffect, useRef, useState } from "react";
 
-import { IComments } from "../FullPost";
 import { Reply } from "./replies/Reply";
 import { PulseLoader } from "react-spinners";
 import ReactMarkdown from "react-markdown";
 import { formatRelativeTime } from "../../../utils/relativeTimeFormatter";
 import { Modal } from "../../../components/modal/Modal";
 
-interface ICommentProps
-{
-    comment: IComments,
+
+
+interface ICommentProps {
+    comment: IComment,
     fullPostCommentsCount: number,
     setFullPostCommentsCount: React.Dispatch<React.SetStateAction<number>>,
 }
 
-
-
-export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCount }: ICommentProps) =>
-{
-    const userInfo = useAppSelector((state) => state.auth as { userData: { _id: string, userAvatar: string; }, status: string; });
+export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCount }: ICommentProps) => {
+    const userInfo = useAppSelector((state) => state.auth);
     const moddedDate = formatRelativeTime(new Date(comment.createdAt));
 
     const [showComment, setShowComment] = useState(true);
@@ -41,23 +40,20 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
 
     const [isReplyingLoading, setIsReplyingLoading] = useState(false);
     const [isReplying, setIsReplying] = useState(false);
-    const [commentReplies, setCommentReplies] = useState<IComments | []>([]);
+    const [commentReplies, setCommentReplies] = useState<IComment[]>([]);
     const [commentRepliesCount, setCommentRepliesCount] = useState(comment.repliesCount);
 
     // Get replies on start
-    useEffect(() =>
-    {
-        customAxios.get(`/comments/replies/${comment._id}`).then((res) => { setCommentReplies(res.data); })
+    useEffect(() => {
+        axiosCustom.get(`/comments/replies/${comment._id}`).then((res) => { setCommentReplies(res.data); })
             .catch((error) => { console.error("Could not get comment's replies", error); });
     }, [comment._id]);
 
 
 
     //Adjust the textarea on edit button click
-    useEffect(() =>
-    {
-        if (commentTextareaRef.current)
-        {
+    useEffect(() => {
+        if (commentTextareaRef.current) {
             commentTextareaRef.current.style.height = 'inherit';
             commentTextareaRef.current.style.height = `${commentTextareaRef.current.scrollHeight}px`;
         }
@@ -66,8 +62,7 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
 
 
     // Resize textarea according to its content and validate the input
-    const resizeTextarea = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    {
+    const resizeTextarea = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         e.target.style.height = 'inherit';
         e.target.style.height = `${e.target.scrollHeight}px`;
 
@@ -85,10 +80,8 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
 
 
     // Comments ----------------------------------------------------------------------
-    const deleteComment = async () =>
-    {
-        try
-        {
+    const deleteComment = async () => {
+        try {
             const data =
             {
                 _id: comment._id,
@@ -96,13 +89,13 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
                 commentParentId: comment.commentParentId,
             };
 
-            await customAxios.delete(`/comments/${comment._id}`, { data });
+            await axiosCustom.delete(`/comments/${comment._id}`, { data });
 
             // Decrease commentsCount when deleting the main comment (we should take replies into account) -----------------
             const decreaseAmount = commentReplies.length + 1;
             setFullPostCommentsCount((prev) => (prev - decreaseAmount) <= 0 ? 0 : (prev - decreaseAmount));
             // Update backend's commentCount (so that on page refresh the count would be synced)
-            await customAxios.patch(`/posts/${comment.postId}`, { commentsCount: (fullPostCommentsCount - decreaseAmount) <= 0 ? 0 : (fullPostCommentsCount - decreaseAmount) });
+            await axiosCustom.patch(`/posts/${comment.postId}`, { commentsCount: (fullPostCommentsCount - decreaseAmount) <= 0 ? 0 : (fullPostCommentsCount - decreaseAmount) });
             // -------------------------------------------------------------------------------------------------------------
 
             setShowComment(false);
@@ -112,9 +105,8 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
 
 
 
-    const editComment = async () =>
-    {
-        if (!commentTextareaRef.current || !commentTextareaRef.current.value) return; // typescript check
+    const editComment = async () => {
+        if (!commentTextareaRef.current || !commentTextareaRef.current.value) return;
 
         const editedCommentText = commentTextareaRef.current.value;
 
@@ -123,7 +115,7 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
 
         setIsLoadingEditing(true);
 
-        try { await customAxios.patch(`/comments/${comment._id}`, { text: editedCommentText }); }
+        try { await axiosCustom.patch(`/comments/${comment._id}`, { text: editedCommentText }); }
         catch (error) { console.error("Could not edit the comment", error); }
 
         setCurrentCommentText(editedCommentText);
@@ -137,9 +129,8 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
 
 
 
-    const replyToComment = async () =>
-    {
-        if (!replyTextareaRef.current || !replyTextareaRef.current.value) return; // typescript check
+    const replyToComment = async () => {
+        if (!replyTextareaRef.current || !replyTextareaRef.current.value) return;
 
         const replyText = replyTextareaRef.current.value;
 
@@ -153,14 +144,13 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
             postId: comment.postId,
             commentParentId: comment._id,
             text: replyText,
-            user: userInfo.userData._id,
+            user: userInfo.userData?._id,
         };
 
-        try
-        {
-            await customAxios.post("/comments", body);
+        try {
+            await axiosCustom.post("/comments", body);
             // Refresh replies
-            await customAxios.get(`/comments/replies/${comment._id}`).then((res) => { setCommentReplies(res.data); });
+            await axiosCustom.get(`/comments/replies/${comment._id}`).then((res) => { setCommentReplies(res.data); });
         }
         catch (error) { console.error("Could not create the reply", error); }
 
@@ -187,7 +177,7 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
     return (
         <div className="comment">
 
-            {userInfo.userData._id === comment.user._id &&
+            {userInfo.userData?._id === comment.user._id &&
                 <div className="comment__options">
                     <button onClick={() => setShowModal(true)}>X</button>
                     <button onClick={() => { setEditingcomment(!isEditingComment); }}>{isEditingComment ? "Cancel editing" : "edit"}</button>
@@ -235,14 +225,13 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
 
 
             <div className="comment_replies" style={{ display: showReplies ? "inherit" : "none" }}>
-                {commentReplies?.map((e) =>
-                {
+                {commentReplies?.map((e: IComment) => {
                     return <Reply
                         key={e._id}
                         comment={e}
                         setFullPostCommentsCount={setFullPostCommentsCount}
                         setParentCommentsCount={setCommentRepliesCount}
-                        userInfo={userInfo} />;
+                        userData={userInfo.userData} />;
                 })}
             </div>
 

@@ -1,16 +1,14 @@
-import customAxios from "axios";
-import { InternalAxiosRequestConfig } from "axios";
+import axios from "axios";
+// import { InternalAxiosRequestConfig } from "axios";
 
-const instance = customAxios.create(
+export const axiosCustom = axios.create(
     {
         withCredentials: true,
         baseURL: process.env.REACT_APP_BACKEND,
     });
 
-// instance.interceptors.request.use((config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => 
+// axiosCustom.interceptors.request.use((config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => 
 // {
 //     config.headers.authorization = window.localStorage.getItem("accessToken");
 //     return config;
 // });
-
-export default instance;

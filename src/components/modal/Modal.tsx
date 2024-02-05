@@ -1,27 +1,24 @@
 import "./Modal.scss";
 import { useEffect, useRef } from "react";
 
-interface ModalProps
-{
+
+
+interface IModalProps {
     text: string,
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
     performAction: () => void,
 }
 
-export const Modal = ({ text, setShowModal, performAction: deletePost, }: ModalProps) =>
-{
+export const Modal = ({ text, setShowModal, performAction: deletePost, }: IModalProps) => {
     const modalRef = useRef<HTMLDivElement>(null);
 
 
 
-    useEffect(() =>
-    {
-        const closeModal = (e: MouseEvent) =>
-        {
-            const target = e.target as HTMLElement;
+    useEffect(() => {
+        const closeModal = (e: MouseEvent) => {
+            if (!(e.target instanceof HTMLElement)) return;
 
-            if (target.tagName !== "BUTTON" && target.parentElement?.tagName !== "BUTTON" && !modalRef.current?.contains(target))
-            { setShowModal(false); }
+            if (e.target.tagName !== "BUTTON" && e.target.parentElement?.tagName !== "BUTTON" && !modalRef.current?.contains(e.target)) { setShowModal(false); }
         };
 
         document.addEventListener("click", closeModal);

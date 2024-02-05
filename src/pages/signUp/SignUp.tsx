@@ -12,15 +12,14 @@ import { useRef, useState } from "react";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-import { fetchRegister, selectIsAuth } from "../../redux/slices/authSlice";
+import { fetchRegister, isCurrentUserSignedIn } from "../../redux/slices/authSlice";
 import { Navigate } from "react-router-dom";
 
 
 
-export const SignUp = () =>
-{
+export const SignUp = () => {
     const dispatch = useAppDispatch();
-    const isUserSignedIn = useAppSelector(selectIsAuth);
+    const isUserSignedIn = useAppSelector(isCurrentUserSignedIn);
 
     const noAvatarUrl = process.env.REACT_APP_BACKEND as string + process.env.REACT_APP_NOIMG as string;
     const [avatarUrl, setAvatarUrl] = useState(noAvatarUrl);
@@ -55,9 +54,8 @@ export const SignUp = () =>
 
 
 
-    const onSubmit = async (onSubmitValues: { email: string, password: string, name: string; }) =>
-    {
-        if (!inputFileRef.current?.files) return; //typescript check
+    const onSubmit = async (onSubmitValues: { email: string, password: string, name: string; }) => {
+        if (!inputFileRef.current?.files) return;
 
         const imgPath = await uploadImage(croppedAvatarFile as File);
 
@@ -96,7 +94,8 @@ export const SignUp = () =>
                         />
                     </div>
 
-                    : <>
+                    :
+                    <>
                         <div className="sign-up__avatar-container">
                             <img className="sign-up__avatar" src={(avatarUrl !== noAvatarUrl) ? avatarUrl : noAvatarUrl} alt="Your avatar preview" />
                         </div>
@@ -112,9 +111,8 @@ export const SignUp = () =>
                     : <button type="button" onClick={() => inputFileRef.current?.click()}>Select avatar</button>
                 }
 
-                <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={(e) =>
-                {
-                    if (!inputFileRef.current?.files) return; //typescript check
+                <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={(e) => {
+                    if (!inputFileRef.current?.files) return;
 
                     // Size check
                     if (inputFileRef.current?.files[0]?.size > 26214400) { return setImgExtError("Image size can't be higher than 25 megabytes"); }

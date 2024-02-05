@@ -1,14 +1,13 @@
 import "./Navbar.scss";
 import logo from "./featherLogo.svg";
 
-import customAxios from "../../axiosSettings";
-
+import { axiosCustom } from "../../axiosSettings";
 
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { fetchPosts } from "../../redux/slices/postsSlice";
-import { selectIsAuth, signOut } from "../../redux/slices/authSlice";
+import { isCurrentUserSignedIn, signOut } from "../../redux/slices/authSlice";
 
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "../modal/Modal";
@@ -19,7 +18,7 @@ export const Navbar = () => {
 
     const dispatch = useAppDispatch();
 
-    const isUserSignedIn = useAppSelector(selectIsAuth);
+    const isUserSignedIn = useAppSelector(isCurrentUserSignedIn);
     const navbarRef = useRef<HTMLDivElement>(null);
 
     const [showHamMenu, setShowHamMenu] = useState(false);
@@ -30,7 +29,10 @@ export const Navbar = () => {
 
     // Close hamburger menu when clicking outside of it
     useEffect(() => {
-        const closeHamMenu = (e: MouseEvent) => { !navbarRef.current?.contains(e.target as HTMLElement) && setShowHamMenu(false); };
+        const closeHamMenu = (e: MouseEvent) => {
+            if (!(e.target instanceof HTMLElement)) return;
+            !navbarRef.current?.contains(e.target) && setShowHamMenu(false);
+        };
         document.addEventListener("click", closeHamMenu);
         return () => { document.removeEventListener("click", closeHamMenu); };
     }, []);
@@ -38,7 +40,7 @@ export const Navbar = () => {
 
 
     const handleSignOut = async () => {
-        await customAxios.post(`/auth/logout`);
+        await axiosCustom.post(`/auth/logout`);
         dispatch(signOut());
         navigate("/");
     };

@@ -1,11 +1,12 @@
 import "./TagPage.scss";
 import "../Home.scss";
 
+import { IPost } from "../../../models/IPost";
+
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 
-import { IPostProps } from "../Home";
 import { Post } from "../post/Post";
 import { fetchPosts } from "../../../redux/slices/postsSlice";
 import { SortPosts } from "../../../components/sortPosts/SortPosts";
@@ -22,7 +23,7 @@ export const TagPage = () =>
 
     useEffect(() => { dispatch(fetchPosts()); }, [dispatch]);
 
-    const postsWithTag = posts.items.filter((e: IPostProps) => { return tag && e.tags?.includes(tag); });
+    const postsWithTag = posts.items.filter((e: IPost) => { return tag && e.tags?.includes(tag); });
 
 
 
@@ -42,7 +43,7 @@ export const TagPage = () =>
                 <SortPosts />
 
                 <div className="home__posts">
-                    {postsWithTag.map((e: IPostProps) => { return <Post post={e} key={e._id} />; })}
+                    {postsWithTag.map((e: IPost) => { return <Post post={e} key={e._id} />; })}
                 </div>
             </div>
         </div>

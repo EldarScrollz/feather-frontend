@@ -1,25 +1,28 @@
 import "../Comment.scss";
 
-import customAxios from "../../../../axiosSettings";
+import { IComment } from "../../../../models/IComment";
 
-import { IComments } from "../../FullPost";
+import {axiosCustom} from "../../../../axiosSettings";
+
 import { useEffect, useRef, useState } from "react";
+import { IUser } from "../../../../models/IUser";
+
 import { PulseLoader } from "react-spinners";
 import ReactMarkdown from "react-markdown";
 import { formatRelativeTime } from "../../../../utils/relativeTimeFormatter";
 import { Modal } from "../../../../components/modal/Modal";
 
+
+
 interface ICommentProps
 {
-    comment: IComments,
+    comment: IComment,
     setFullPostCommentsCount: React.Dispatch<React.SetStateAction<number>>,
     setParentCommentsCount: React.Dispatch<React.SetStateAction<number>>,
-    userInfo: { userData: { _id: string; userAvatar: string; }; status: string; },
+    userData: IUser | null,
 }
 
-
-
-export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCount, userInfo }: ICommentProps) =>
+export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCount, userData: userInfo }: ICommentProps) =>
 {
     const moddedDate = formatRelativeTime(new Date(comment.createdAt));
 
@@ -72,7 +75,7 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
             commentParentId: comment.commentParentId,
         };
 
-        try { await customAxios.delete(`/comments/${comment._id}`, { data }); }
+        try { await axiosCustom.delete(`/comments/${comment._id}`, { data }); }
         catch (error) { console.error("Could not delete the reply", error); }
 
         setFullPostCommentsCount(prev => prev - 1);
@@ -85,7 +88,7 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
 
     const editComment = async () =>
     {
-        if (!commentTextareaRef.current || !commentTextareaRef.current.value) return; // typescript check
+        if (!commentTextareaRef.current || !commentTextareaRef.current.value) return; 
 
         const editedCommentText = commentTextareaRef.current.value;
 
@@ -94,7 +97,7 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
 
         setIsLoadingEditing(true);
 
-        try { await customAxios.patch(`/comments/${comment._id}`, { text: editedCommentText }); }
+        try { await axiosCustom.patch(`/comments/${comment._id}`, { text: editedCommentText }); }
         catch (error) { console.error("Could not edit the comment", error); }
 
         setCurrentCommentText(editedCommentText);
@@ -114,7 +117,7 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
     return (
         <div className="comment">
 
-            {userInfo.userData._id === comment.user._id &&
+            {userInfo?._id === comment.user._id &&
                 <div className="comment__options">
                     <button onClick={() => setShowModal(true)}>X</button>
                     <button onClick={() => { setEditingcomment(!isEditingComment); }}>{isEditingComment ? "Cancel editing" : "edit"}</button>

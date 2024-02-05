@@ -13,7 +13,7 @@ export const returnCroppedImage = async (
 {
     try
     {
-        if (!inputFileRef.current?.files) return; // typescript check
+        if (!inputFileRef.current?.files) return; 
 
         const blob = await getCroppedImg(newImgToCrop, croppedPixels);
         blob.name = inputFileRef.current.files[0].name;

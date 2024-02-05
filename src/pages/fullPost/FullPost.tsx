@@ -6,8 +6,10 @@ import deleteIcon from "../home/post/deleteIcon.svg";
 import editIcon from "../home/post/editIcon.svg";
 import heartsIcon from "../home/post/heartsIcon.svg";
 
+import { IPost } from "../../models/IPost";
+import { IComment } from "../../models/IComment";
 
-import customAxios from "../../axiosSettings";
+import {axiosCustom} from "../../axiosSettings";
 
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
@@ -16,7 +18,6 @@ import { useNavigate } from "react-router-dom";
 
 import { Comment } from "./commentSection/Comment";
 import ReactMarkdown from "react-markdown";
-import { IPostProps } from "../home/Home";
 
 import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
 import { PulseLoader } from "react-spinners";
@@ -25,29 +26,12 @@ import { Modal } from "../../components/modal/Modal";
 import { fetchPosts } from "../../redux/slices/postsSlice";
 import { signOut } from "../../redux/slices/authSlice";
 
-export interface IComments {
-    _id: string,
-    postId: string,
-    commentParentId: string,
-    text: string,
-    repliesCount: number,
-    isEdited: boolean,
-    createdAt: string,
-    updatedAt: string,
-    user: {
-        userAvatar: string,
-        name: string,
-        _id: string,
-    };
-}
-export interface IComments extends Array<IComments> { }
-
 
 
 export const FullPost = () => {
     const { id: postId } = useParams();
 
-    const userInfo = useAppSelector((state) => state.auth as { userData: { _id: string, userAvatar: string; }, status: string; });
+    const userInfo = useAppSelector((state) => state.auth);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
@@ -59,42 +43,40 @@ export const FullPost = () => {
     const [isFullPostLoading, setIsFullPostloading] = useState(true);
     const [isCommentLoading, setIsCommentLoading] = useState(false);
 
-    const [fullPostData, setFullPostData] = useState<IPostProps | null>(null);
+    const [fullPostData, setFullPostData] = useState<IPost | null>(null);
     const moddedDate = fullPostData && formatRelativeTime(new Date(fullPostData.createdAt));
     const [fullPostCommentsCount, setFullPostCommentsCount] = useState(0);
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const [postComments, setPostComments] = useState<IComments | null>(null);
+    const [postComments, setPostComments] = useState<IComment[]>([]);
     const [createdCommentText, setCreatedCommentText] = useState("");
     const [createdCommentErrorMsg, setCreatedCommentErrorMsg] = useState("");
 
 
 
     useEffect(() => {
-        if (userInfo.userData) {
-            (async () => {
-                try {
-                    const { data: postData } = await customAxios.get(`/posts/${postId}`);
+        (async () => {
+            try {
+                const { data: postData } = await axiosCustom.get(`/posts/${postId}`);
 
-                    setFullPostData(postData);
-                    setHeartsCount(postData.heartsCount);
-                    setFullPostCommentsCount(postData.commentsCount);
+                setFullPostData(postData);
+                setHeartsCount(postData.heartsCount);
+                setFullPostCommentsCount(postData.commentsCount);
 
-                    // Check if user already "hearted" this post
-                    const { data: heartData } = await customAxios.get(`hearts/hasUserHeart/${postId}/${userInfo.userData._id}`);
-                    setIsUserInHearts(heartData);
+                // Check if user already "hearted" this post
+                const { data: heartData } = await axiosCustom.get(`hearts/hasUserHeart/${postId}/${userInfo.userData?._id}`);
+                setIsUserInHearts(heartData);
 
-                    const { data: commentsData } = await customAxios.get(`/comments/${postId}`);
-                    setPostComments(commentsData);
-                } catch (error: any) {
-                    console.error("Could not get the all the fullpost data", error);
-                    
-                    if (error.response.status === 403) dispatch(signOut());
-                }
-                finally { setIsFullPostloading(false); }
-            })();
-        }
-    }, [userInfo, postId]);
+                const { data: commentsData } = await axiosCustom.get(`/comments/${postId}`);
+                setPostComments(commentsData);
+            } catch (error: any) {
+                console.error("Could not get the all the fullpost data", error);
+
+                if (error.response.status === 403) dispatch(signOut());
+            }
+            finally { setIsFullPostloading(false); }
+        })();
+    }, [userInfo, postId, dispatch]);
 
 
 
@@ -102,17 +84,15 @@ export const FullPost = () => {
         setIsHeartLoading(true);
 
         try {
-            if (!fullPostData) return; // typescript check
-
             if (!isUserInHearts) {
-                await customAxios.post(`/hearts/${fullPostData?._id}`);
+                await axiosCustom.post(`/hearts/${fullPostData?._id}`);
 
                 setHeartsCount(prev => prev + 1);
 
                 setIsUserInHearts(true);
             }
             else if (isUserInHearts) {
-                await customAxios.delete(`/hearts?postId=${fullPostData?._id}&userId=${userInfo.userData._id}`);
+                await axiosCustom.delete(`/hearts?postId=${fullPostData?._id}&userId=${userInfo.userData?._id}`);
 
                 setHeartsCount(prev => prev - 1);
 
@@ -128,7 +108,7 @@ export const FullPost = () => {
 
     const deletePost = async () => {
         try {
-            await customAxios.delete(`/posts/${fullPostData?._id}`);
+            await axiosCustom.delete(`/posts/${fullPostData?._id}`);
             dispatch(fetchPosts());
             navigate("/");
         }
@@ -163,12 +143,12 @@ export const FullPost = () => {
             postId: postId,
             commentParentId: null,
             text: createdCommentText,
-            user: userInfo.userData._id,
+            user: userInfo.userData?._id,
         };
 
         try {
-            await customAxios.post("/comments", body);
-            await customAxios.get(`/comments/${postId}`).then((res) => { setPostComments(res.data); });
+            await axiosCustom.post("/comments", body);
+            await axiosCustom.get(`/comments/${postId}`).then((res) => { setPostComments(res.data); });
         }
         catch (error) { console.error("Could not create the comment", error); }
 
@@ -183,9 +163,9 @@ export const FullPost = () => {
 
 
     // Checks ----------------------------------------------------------------------------------------------------------------------
-    if (userInfo.status !== "loading" && userInfo.userData === null) return <h2 style={{ height: "78vh", display: "flex", justifyContent: "center", alignItems: "center" }}>{"Sign in to view the post"}</h2>;
+    if ((userInfo.status !== "loading" && !userInfo.userData) || !userInfo.userData) return <h2 style={{ height: "78vh", display: "flex", justifyContent: "center", alignItems: "center" }}>{"Sign in to view the post"}</h2>;
 
-    if (!fullPostData || !postComments || isFullPostLoading) return <LoadingScreen />; // typescript check
+    if (!fullPostData || !postComments || isFullPostLoading) return <LoadingScreen />;
     //------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -221,7 +201,7 @@ export const FullPost = () => {
                 </div>
 
                 <div className="post__description">
-                    <ReactMarkdown className="post__description-text" children={fullPostData.text as string} />
+                    <ReactMarkdown className="post__description-text" children={fullPostData.text} />
                 </div>
 
                 <div className="post__footer">
@@ -257,7 +237,10 @@ export const FullPost = () => {
                     </div>
                 </div>
 
-                {postComments.filter(e => e.commentParentId === null).map((e) => { return <Comment key={e._id} comment={e} fullPostCommentsCount={fullPostCommentsCount} setFullPostCommentsCount={setFullPostCommentsCount} />; })}
+                {postComments
+                    .filter((e: IComment) => e.commentParentId === null)
+                    .map((e: IComment) => { return <Comment key={e._id} comment={e} fullPostCommentsCount={fullPostCommentsCount} setFullPostCommentsCount={setFullPostCommentsCount} />; })
+                }
             </div>
 
             {showModal && <Modal text={"Delete the post?"} setShowModal={setShowModal} performAction={() => deletePost()} />}

@@ -1,9 +1,6 @@
 const rtf = new Intl.RelativeTimeFormat("en", { numeric: "always", });
 
-interface IDivisions { amount: number; name: Intl.RelativeTimeFormatUnit; }
-
-
-const divisions: IDivisions[] = [
+const divisions: { amount: number; name: Intl.RelativeTimeFormatUnit; }[] = [
     { amount: 60, name: "seconds" },
     { amount: 60, name: "minutes" },
     { amount: 24, name: "hours" },

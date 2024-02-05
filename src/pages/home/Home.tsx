@@ -1,5 +1,7 @@
 import "./Home.scss";
 
+import { IPost } from "../../models/IPost";
+
 import { useAppSelector } from "../../redux/hooks";
 
 import { Post } from "./post/Post";
@@ -7,24 +9,6 @@ import { TopTags } from "./topTags/TopTags";
 import { SortPosts } from "../../components/sortPosts/SortPosts";
 import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
 import { useEffect, useState } from "react";
-
-export interface IPostProps
-{
-    _id: string,
-    title: string,
-    text: string,
-    tags: string[],
-    postImg: string,
-    viewsCount: number,
-    commentsCount: number,
-    heartsCount: number,
-    user: {
-        name: string,
-        userAvatar: string,
-        _id: string;
-    };
-    createdAt: string,
-}
 
 
 
@@ -61,7 +45,7 @@ export const Home = () =>
             <SortPosts />
 
             <div className={animate}>
-                {posts.items.map((e: IPostProps) => <Post post={e} key={e._id} />)}
+                {posts.items.map((e: IPost) => <Post post={e} key={e._id} />)}
             </div>
         </div>
     );

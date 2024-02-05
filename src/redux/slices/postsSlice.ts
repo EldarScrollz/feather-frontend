@@ -1,31 +1,34 @@
+import { IPost } from '../../models/IPost';
+
+import {axiosCustom} from "../../axiosSettings";
+
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import customAxios from "../../axiosSettings";
 
 export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
-    const { data } = await customAxios.get("/posts");
+    const { data } = await axiosCustom.get("/posts");
     return data;
 });
 
 export const fetchTopTags = createAsyncThunk("posts/fetchTopTags", async () => {
-    const { data } = await customAxios.get("/posts/topTags");
+    const { data } = await axiosCustom.get("/posts/topTags");
     return data;
 });
 
 
 
-interface IPostsState {
+interface IPostState {
     posts: {
-        items: [],
+        items: IPost[] | [],
         status: string;
     };
 
     tags: {
-        items: [],
+        items: string[] | [],
         status: string;
     };
 }
 
-const initialState: IPostsState =
+const initialState: IPostState =
 {
     posts: {
         items: [],
@@ -91,9 +94,9 @@ const postSlice = createSlice(
                 state.posts.status = "loading";
             });
             builder.addCase(fetchPosts.fulfilled, (state, action) => {
-                const initialSortedPosts = [...action.payload].sort((a: { createdAt: Date; }, b: { createdAt: Date; }) => { return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); });
+                const initialSortedPosts: IPost[] = [...action.payload].sort((a: { createdAt: Date; }, b: { createdAt: Date; }) => { return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); });
 
-                state.posts.items = initialSortedPosts as [];
+                state.posts.items = initialSortedPosts;
                 state.posts.status = "loaded";
             });
             builder.addCase(fetchPosts.rejected, (state) => {

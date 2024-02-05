@@ -5,26 +5,29 @@ import viewsIcon from "./viewsIcon.svg";
 import commentsIcon from "./commentsIcon.svg";
 import heartsIcon from "./heartsIcon.svg"
 
-import customAxios from "../../../axiosSettings";
+import { IPost } from "../../../models/IPost";
+
+import {axiosCustom} from "../../../axiosSettings";
 
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { useEffect, useState } from "react";
 
 import { Link, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
-import { IPostProps } from "../Home";
 import { updateHeartsCount } from "../../../redux/slices/postsSlice";
 import { PulseLoader } from "react-spinners";
 import { formatRelativeTime } from "../../../utils/relativeTimeFormatter";
 import { Modal } from "../../../components/modal/Modal";
 
-interface IProps { post: IPostProps; }
 
-export const Post = ({ post }: IProps) =>
+
+interface IPostProps { post: IPost; }
+
+export const Post = ({ post }: IPostProps) =>
 {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const userData = useAppSelector((state) => state.auth.userData as { _id: string, });
+    const userData = useAppSelector((state) => state.auth.userData);
 
     const moddedDate = formatRelativeTime(new Date(post.createdAt));
 
@@ -44,7 +47,7 @@ export const Post = ({ post }: IProps) =>
         if (userData?._id)
         {
             // Check if user already "hearted" this post
-            customAxios.get(`hearts/hasUserHeart/${post._id}/${userData?._id}`)
+            axiosCustom.get(`hearts/hasUserHeart/${post._id}/${userData?._id}`)
                 .then((res) => 
                 {
                     setIsUserInHearts(res.data);
@@ -61,7 +64,7 @@ export const Post = ({ post }: IProps) =>
     {
         try 
         {
-            await customAxios.delete(`/posts/${post._id}`);
+            await axiosCustom.delete(`/posts/${post._id}`);
 
             setShowPost(false);
         }
@@ -78,7 +81,7 @@ export const Post = ({ post }: IProps) =>
         {
             if (!isUserInHearts)
             {
-                await customAxios.post(`/hearts/${post._id}`);
+                await axiosCustom.post(`/hearts/${post._id}`);
 
                 // Increase heartsCount (redux) ----------------------------------
                 const payload = { _id: post._id, count: (post.heartsCount + 1) };
@@ -91,7 +94,7 @@ export const Post = ({ post }: IProps) =>
             }
             else if (isUserInHearts)
             {
-                await customAxios.delete(`/hearts?postId=${post._id}&userId=${userData._id}`);
+                await axiosCustom.delete(`/hearts?postId=${post._id}&userId=${userData?._id}`);
 
                 // Decrease heartsCount (redux) ----------------------------------
                 const payload = { _id: post._id, count: (post.heartsCount - 1) };

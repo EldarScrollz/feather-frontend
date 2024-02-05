@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAppDispatch } from "../../redux/hooks";
 import { sortPost } from "../../redux/slices/postsSlice";
 
-export const SortPosts = () =>
-{
+export const SortPosts = () => {
     const dispatch = useAppDispatch();
 
     const sortDropdownRef = useRef<HTMLDivElement>(null);
@@ -16,9 +15,11 @@ export const SortPosts = () =>
 
 
 
-    useEffect(() => 
-    {
-        const closeDropdown = (e: MouseEvent) => { !sortDropdownRef.current?.contains(e.target as Node) && setShowSortDropdown(false); };
+    useEffect(() => {
+        const closeDropdown = (e: MouseEvent) => {
+            if (!(e.target instanceof Node)) return;
+            !sortDropdownRef.current?.contains(e.target) && setShowSortDropdown(false);
+        };
         document.addEventListener("click", closeDropdown);
         return () => { document.removeEventListener("click", closeDropdown); };
     }, []);

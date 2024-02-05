@@ -1,7 +1,7 @@
 import "./UserProfile.scss";
 import "../../utils/imgCropper.scss";
 
-import customAxios from "../../axiosSettings";
+import {axiosCustom} from "../../axiosSettings";
 
 import { uploadImage } from "../../utils/uploadImage";
 import Cropper, { Area } from "react-easy-crop";
@@ -22,7 +22,9 @@ import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
 import { Modal } from "../../components/modal/Modal";
 import { fetchPosts } from "../../redux/slices/postsSlice";
 
-interface IUserData {
+
+
+interface IProfileData {
     email: string,
     name: string,
     isChangePassword: boolean | undefined,
@@ -31,13 +33,11 @@ interface IUserData {
     confirmNewPassword: string | undefined,
 }
 
-
-
 export const UserProfile = () => {
     const navigate = useNavigate();
 
     const dispatch = useAppDispatch();
-    const auth = useAppSelector((state) => state.auth as { userData: { _id: string, name: string, email: string, userAvatar: string, }, status: string; });
+    const auth = useAppSelector((state) => state.auth);
 
     const [isProfileLoading, setisProfileLoading] = useState(true);
     const [isSubmitLoading, setIsSubmitLoading] = useState(false);
@@ -99,11 +99,11 @@ export const UserProfile = () => {
                 }),
         });
 
-    const { register, handleSubmit, setError, formState: { errors }, setValue } = useForm<IUserData>(
+    const { register, handleSubmit, setError, formState: { errors }, setValue } = useForm<IProfileData>(
         {
             resolver: yupResolver(schema),
             defaultValues: async () => {
-                const res = await customAxios.get("/auth/me");
+                const res = await axiosCustom.get("/auth/me");
 
                 setisProfileLoading(false);
 
@@ -122,7 +122,7 @@ export const UserProfile = () => {
 
     const handleAccountDelete = async () => {
         try {
-            await customAxios.delete(`/auth/deleteProfile/${auth.userData._id}/${deleteUserPassword}`);
+            await axiosCustom.delete(`/auth/deleteProfile/${auth.userData?._id}/${deleteUserPassword}`);
             dispatch(signOut());
             navigate("/");
         }
@@ -133,7 +133,7 @@ export const UserProfile = () => {
     };
 
 
-    const onSubmit = async (onSubmitValues: IUserData) => {
+    const onSubmit = async (onSubmitValues: IProfileData) => {
         if (imgExtError !== "") return;
 
         setIsSubmitLoading(true);
@@ -144,7 +144,7 @@ export const UserProfile = () => {
             const userAvatarToSet = croppedImgPath ? croppedImgPath : avatarPath;
 
             if (onSubmitValues.isChangePassword) {
-                await customAxios.patch(`auth/editProfile${oldAvatarQuery}`,
+                await axiosCustom.patch(`auth/editProfile${oldAvatarQuery}`,
                     {
                         email: onSubmitValues.email,
                         name: onSubmitValues.name,
@@ -156,7 +156,7 @@ export const UserProfile = () => {
                     });
             }
             else {
-                await customAxios.patch(`auth/editProfile${oldAvatarQuery}`,
+                await axiosCustom.patch(`auth/editProfile${oldAvatarQuery}`,
                     {
                         email: onSubmitValues.email,
                         name: onSubmitValues.name,
@@ -220,7 +220,7 @@ export const UserProfile = () => {
                 }
 
                 <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={(e) => {
-                    if (!inputFileRef.current?.files) return; //typescript check
+                    if (!inputFileRef.current?.files) return; 
 
                     // Size check
                     if (inputFileRef.current?.files[0]?.size > 26214400) { return setImgExtError("Image size can't be higher than 25 megabytes"); }

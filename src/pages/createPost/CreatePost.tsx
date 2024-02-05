@@ -1,7 +1,7 @@
 import "./CreatePost.scss";
 import "../../utils/imgCropper.scss";
 
-import customAxios from "../../axiosSettings";
+import {axiosCustom} from "../../axiosSettings";
 
 import { uploadImage } from "../../utils/uploadImage";
 
@@ -56,7 +56,7 @@ export const CreatePost = () =>
             {
                 try
                 {
-                    const { data } = await customAxios.get(`/posts/${idFromLink}`);
+                    const { data } = await axiosCustom.get(`/posts/${idFromLink}`);
                     setText(data.text);
                     setPostImgPath(data.postImg);
                     setPostImgUrl(process.env.REACT_APP_BACKEND + data.postImg);
@@ -89,7 +89,7 @@ export const CreatePost = () =>
             {
                 if (!idFromLink) { setIsLoadingDefaults(false); return { title: "", tags: "" }; }
 
-                const res = await customAxios.get(`/posts/${idFromLink}`);
+                const res = await axiosCustom.get(`/posts/${idFromLink}`);
                 setIsLoadingDefaults(false);
                 return { title: res.data.title, tags: res.data.tags.toString().replace(/,/g, " ") };
             },
@@ -120,7 +120,7 @@ export const CreatePost = () =>
         {
             setIsCreatingPost(true);
 
-            if (!inputFileRef.current?.files) return; //typescript check
+            if (!inputFileRef.current?.files) return;
             if (text === "") { setNoTextError(i => ({ ...i, status: true, message: "You must add a description" })); return; }
 
             const croppedImgPath = await uploadImage(inputFileRef.current.files[0] as File);
@@ -137,8 +137,8 @@ export const CreatePost = () =>
             // If original image hasn't been affected - do not delete it
             const oldPostImgQuery = (postImgUrl === noPostImgUrl) ? `/?oldPostImg=${postImgPath}` : "";
             const { data } = idFromLink
-                ? await customAxios.patch(`/posts/${idFromLink}${oldPostImgQuery}`, body)
-                : await customAxios.post("/posts", body);
+                ? await axiosCustom.patch(`/posts/${idFromLink}${oldPostImgQuery}`, body)
+                : await axiosCustom.post("/posts", body);
 
             dispatch(fetchPosts());
             dispatch(fetchTopTags());
@@ -166,7 +166,7 @@ export const CreatePost = () =>
 
                 <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={(e) =>
                 {
-                    if (!inputFileRef.current?.files) return; //typescript check
+                    if (!inputFileRef.current?.files) return;
 
                     // Size check
                     if (inputFileRef.current.files[0].size > 26214400) { return setImgExtError("Image size can't be higher than 25 megabytes"); }
