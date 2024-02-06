@@ -1,16 +1,16 @@
 import { IPost } from '../../models/IPost';
 
-import {axiosCustom} from "../../axiosSettings";
+import { axiosCustom } from "../../axiosSettings";
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
 export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
-    const { data } = await axiosCustom.get("/posts");
+    const { data } = await axiosCustom.get<IPost[]>("/posts");
     return data;
 });
 
 export const fetchTopTags = createAsyncThunk("posts/fetchTopTags", async () => {
-    const { data } = await axiosCustom.get("/posts/topTags");
+    const { data } = await axiosCustom.get<string[]>("/posts/topTags");
     return data;
 });
 

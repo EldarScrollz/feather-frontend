@@ -1,6 +1,8 @@
 import "./CreatePost.scss";
 import "../../utils/imgCropper.scss";
 
+import { IPost } from "../../models/IPost";
+
 import {axiosCustom} from "../../axiosSettings";
 
 import { uploadImage } from "../../utils/uploadImage";
@@ -56,7 +58,7 @@ export const CreatePost = () =>
             {
                 try
                 {
-                    const { data } = await axiosCustom.get(`/posts/${idFromLink}`);
+                    const { data } = await axiosCustom.get<IPost>(`/posts/${idFromLink}`);
                     setText(data.text);
                     setPostImgPath(data.postImg);
                     setPostImgUrl(process.env.REACT_APP_BACKEND + data.postImg);
@@ -89,9 +91,9 @@ export const CreatePost = () =>
             {
                 if (!idFromLink) { setIsLoadingDefaults(false); return { title: "", tags: "" }; }
 
-                const res = await axiosCustom.get(`/posts/${idFromLink}`);
+                const {data} = await axiosCustom.get<IPost>(`/posts/${idFromLink}`);
                 setIsLoadingDefaults(false);
-                return { title: res.data.title, tags: res.data.tags.toString().replace(/,/g, " ") };
+                return { title: data.title, tags: data.tags.toString().replace(/,/g, " ") };
             },
         });
     //----------------------------------------------------------------------------------------------------------------

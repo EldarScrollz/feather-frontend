@@ -1,6 +1,6 @@
 import { IUser } from '../../models/IUser';
 
-import {axiosCustom} from "../../axiosSettings";
+import { axiosCustom } from "../../axiosSettings";
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState } from '../store';
@@ -11,17 +11,17 @@ import { RootState } from '../store';
 // Server calls.
 //==============================================
 export const fetchAuth = createAsyncThunk('auth/fetchAuth', async (params: { email: string, password: string; }) => {
-    const { data } = await axiosCustom.post("/auth/login", params);
+    const { data } = await axiosCustom.post<IUser>("/auth/login", params);
     return data;
 });
 
 export const fetchMe = createAsyncThunk('auth/fetchMe', async () => {
-    const { data } = await axiosCustom.get("/auth/me");
+    const { data } = await axiosCustom.get<IUser>("/auth/me");
     return data;
 });
 
 export const fetchRegister = createAsyncThunk('auth/fetchRegister', async (params: { email: string, password: string; }) => {
-    const data = await axiosCustom.post("/auth/register", params).then((res) => res.data).catch((error) => error.response.data);
+    const { data } = await axiosCustom.post<IUser>("/auth/register", params).then((res) => res.data).catch((error) => error.response.data);
     return data;
 });
 

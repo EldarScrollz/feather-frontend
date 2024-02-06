@@ -8,8 +8,9 @@ import heartsIcon from "../home/post/heartsIcon.svg";
 
 import { IPost } from "../../models/IPost";
 import { IComment } from "../../models/IComment";
+import { IHeart } from "../../models/IHeart";
 
-import {axiosCustom} from "../../axiosSettings";
+import { axiosCustom } from "../../axiosSettings";
 
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
@@ -57,17 +58,17 @@ export const FullPost = () => {
     useEffect(() => {
         (async () => {
             try {
-                const { data: postData } = await axiosCustom.get(`/posts/${postId}`);
+                const { data: postData } = await axiosCustom.get<IPost>(`/posts/${postId}`);
 
                 setFullPostData(postData);
                 setHeartsCount(postData.heartsCount);
                 setFullPostCommentsCount(postData.commentsCount);
 
                 // Check if user already "hearted" this post
-                const { data: heartData } = await axiosCustom.get(`hearts/hasUserHeart/${postId}/${userInfo.userData?._id}`);
-                setIsUserInHearts(heartData);
+                const { data: heartData } = await axiosCustom.get<IHeart>(`hearts/hasUserHeart/${postId}/${userInfo.userData?._id}`);
+                setIsUserInHearts(heartData ? true : false);
 
-                const { data: commentsData } = await axiosCustom.get(`/comments/${postId}`);
+                const { data: commentsData } = await axiosCustom.get<IComment[]>(`/comments/${postId}`);
                 setPostComments(commentsData);
             } catch (error: any) {
                 console.error("Could not get the all the fullpost data", error);

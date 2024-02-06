@@ -1,7 +1,9 @@
 import "./UserProfile.scss";
 import "../../utils/imgCropper.scss";
 
-import {axiosCustom} from "../../axiosSettings";
+import { IUser } from "../../models/IUser";
+
+import { axiosCustom } from "../../axiosSettings";
 
 import { uploadImage } from "../../utils/uploadImage";
 import Cropper, { Area } from "react-easy-crop";
@@ -103,13 +105,13 @@ export const UserProfile = () => {
         {
             resolver: yupResolver(schema),
             defaultValues: async () => {
-                const res = await axiosCustom.get("/auth/me");
+                const { data } = await axiosCustom.get<IUser>("/auth/me");
 
                 setisProfileLoading(false);
 
                 return {
-                    email: res.data.email,
-                    name: res.data.name,
+                    email: data.email,
+                    name: data.name,
                     isChangePassword: false,
                     currentPassword: "",
                     newPassword: "",
@@ -220,7 +222,7 @@ export const UserProfile = () => {
                 }
 
                 <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={(e) => {
-                    if (!inputFileRef.current?.files) return; 
+                    if (!inputFileRef.current?.files) return;
 
                     // Size check
                     if (inputFileRef.current?.files[0]?.size > 26214400) { return setImgExtError("Image size can't be higher than 25 megabytes"); }
