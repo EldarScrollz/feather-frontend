@@ -2,9 +2,9 @@ import "./SortPosts.scss";
 
 import { useEffect, useRef, useState } from "react";
 import { useAppDispatch } from "../../redux/hooks";
-import { sortPost } from "../../redux/slices/postsSlice";
+import { sortPost } from "../../redux/posts/postsSlice";
 
-export const SortPosts = () => {
+export const SortPosts = () => { //todo: since we switched to RTK Query the sorting should be done on backend.
     const dispatch = useAppDispatch();
 
     const sortDropdownRef = useRef<HTMLDivElement>(null);

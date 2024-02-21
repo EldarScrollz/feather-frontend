@@ -1,5 +1,24 @@
 @use "sassGlobals" as g; 
+//=============================================
+// Custom
+//=============================================
+.error{
+    color: g.$errorColor;
+    font-size: g.$headerFontSize;
+    font-weight: bold;
+    text-align: center;
+    word-break: keep-all;
+    height: 78vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
+
+
+//=============================================
+// Default
+//=============================================
 *,
 *::after,
 *::before {
@@ -35,7 +54,7 @@ body {
 }
 
 
-h1 {
+h1,h2 {
     font-size: g.$headerFontSize;
 
     span {

@@ -11,7 +11,7 @@ import { useAppDispatch } from "./redux/hooks";
 import { useEffect } from "react";
 import { fetchMe } from "./redux/slices/authSlice";
 import { TagPage } from "./pages/home/tagPage/TagPage";
-import { fetchPosts, fetchTopTags } from "./redux/slices/postsSlice";
+import { fetchPosts, fetchTopTags } from "./redux/posts/postsSlice";
 import { RootLayout } from "./layouts/RootLayout";
 
 function App()

@@ -3,31 +3,31 @@ import "../Home.scss";
 
 import { IPost } from "../../../models/IPost";
 
-import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
+import { useAppDispatch } from "../../../redux/hooks";
+import { fetchPosts } from "../../../redux/posts/postsSlice";
+import { useGetPostsQuery, useGetTopTagsQuery } from "../../../redux/posts/postsApi";
+
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 
 import { Post } from "../post/Post";
-import { fetchPosts } from "../../../redux/slices/postsSlice";
 import { SortPosts } from "../../../components/sortPosts/SortPosts";
 import { LoadingScreen } from "../../../components/loadingScreen/LoadingScreen";
 import { TopTags } from "../topTags/TopTags";
 
-export const TagPage = () =>
-{
+export const TagPage = () => {
     const dispatch = useAppDispatch();
     const { tag } = useParams();
 
-    const { posts, tags } = useAppSelector((state) => state.allPosts);
-    const isPostsLoading = posts.status === "loading";
+    const { data: posts, error: postsError, isLoading: isLoadingPosts } = useGetPostsQuery();
 
     useEffect(() => { dispatch(fetchPosts()); }, [dispatch]);
 
-    const postsWithTag = posts.items.filter((e: IPost) => { return tag && e.tags?.includes(tag); });
+    const postsWithTag = posts?.filter((e: IPost) => { return tag && e.tags?.includes(tag); });
 
 
 
-    if (isPostsLoading) return <LoadingScreen />;
+    if (isLoadingPosts) return <LoadingScreen />;
 
 
 
@@ -38,12 +38,12 @@ export const TagPage = () =>
                     <p>{tag}</p>
                 </div>
 
-                <TopTags tags={tags} />
+                <TopTags />
 
                 <SortPosts />
 
                 <div className="home__posts">
-                    {postsWithTag.map((e: IPost) => { return <Post post={e} key={e._id} />; })}
+                    {postsWithTag?.map((e: IPost) => { return <Post post={e} key={e._id} />; })}
                 </div>
             </div>
         </div>

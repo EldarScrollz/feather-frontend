@@ -51,7 +51,7 @@ export const SignIn = () =>
         <div className="sign-in">
             <form onSubmit={handleSubmit(onSubmit)} className="sign-in__form">
 
-                <h1>Sign in to <span style={{ color: "#c52b2b" }}>FEATHER</span></h1>
+                <h2>Sign in to <span style={{ color: "#c52b2b" }}>FEATHER</span></h2>
                 {errors.email?.message && <p>{errors.email?.message}</p>}
                 <input
                     placeholder="Email..."

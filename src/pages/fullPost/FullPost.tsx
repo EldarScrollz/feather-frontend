@@ -24,7 +24,7 @@ import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
 import { PulseLoader } from "react-spinners";
 import { formatRelativeTime } from "../../utils/relativeTimeFormatter";
 import { Modal } from "../../components/modal/Modal";
-import { fetchPosts } from "../../redux/slices/postsSlice";
+import { fetchPosts } from "../../redux/posts/postsSlice";
 import { signOut } from "../../redux/slices/authSlice";
 
 
@@ -164,7 +164,7 @@ export const FullPost = () => {
 
 
     // Checks ----------------------------------------------------------------------------------------------------------------------
-    if ((userInfo.status !== "loading" && !userInfo.userData) || !userInfo.userData) return <h2 style={{ height: "78vh", display: "flex", justifyContent: "center", alignItems: "center" }}>{"Sign in to view the post"}</h2>;
+    if ((userInfo.status !== "loading" && !userInfo.userData) || !userInfo.userData) return <p className="error">{"Sign in to view the post"}</p>;
 
     if (!fullPostData || !postComments || isFullPostLoading) return <LoadingScreen />;
     //------------------------------------------------------------------------------------------------------------------------------
@@ -198,7 +198,7 @@ export const FullPost = () => {
                 </div>
 
                 <div className="post__title">
-                    <h1>{fullPostData.title}</h1>
+                    <h2>{fullPostData.title}</h2>
                 </div>
 
                 <div className="post__description">

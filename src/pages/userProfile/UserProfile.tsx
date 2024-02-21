@@ -22,7 +22,7 @@ import { fetchMe, signOut } from "../../redux/slices/authSlice";
 import { PulseLoader } from "react-spinners";
 import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
 import { Modal } from "../../components/modal/Modal";
-import { fetchPosts } from "../../redux/slices/postsSlice";
+import { fetchPosts } from "../../redux/posts/postsSlice";
 
 
 

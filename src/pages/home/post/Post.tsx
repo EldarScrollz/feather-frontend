@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 
 import { Link, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
-import { updateHeartsCount } from "../../../redux/slices/postsSlice";
+import { updateHeartsCount } from "../../../redux/posts/postsSlice";
 import { PulseLoader } from "react-spinners";
 import { formatRelativeTime } from "../../../utils/relativeTimeFormatter";
 import { Modal } from "../../../components/modal/Modal";

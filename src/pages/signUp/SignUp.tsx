@@ -74,7 +74,7 @@ export const SignUp = () => {
     return (
         <div className="sign-up">
             <form onSubmit={handleSubmit(onSubmit)}>
-                <h1>Sign up to <span style={{ color: "#c52b2b" }}>FEATHER</span></h1>
+                <strong>Sign up to <span style={{ color: "#c52b2b" }}>FEATHER</span></strong>
 
                 {isCroppingImg
                     ? <div className="crop-image">

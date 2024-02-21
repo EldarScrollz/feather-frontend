@@ -6,7 +6,7 @@ import { axiosCustom } from "../../axiosSettings";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { fetchPosts } from "../../redux/slices/postsSlice";
+import { fetchPosts } from "../../redux/posts/postsSlice";
 import { isCurrentUserSignedIn, signOut } from "../../redux/slices/authSlice";
 
 import { useEffect, useRef, useState } from "react";

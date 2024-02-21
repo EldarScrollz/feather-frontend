@@ -21,7 +21,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
 import { PulseLoader } from "react-spinners";
 import { useAppDispatch } from "../../redux/hooks";
-import { fetchPosts, fetchTopTags } from "../../redux/slices/postsSlice";
+import { fetchPosts, fetchTopTags } from "../../redux/posts/postsSlice";
 
 
 
