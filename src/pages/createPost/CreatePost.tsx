@@ -1,10 +1,6 @@
 import "./CreatePost.scss";
 import "../../utils/imgCropper.scss";
 
-import { IPost } from "../../models/IPost";
-
-import {axiosCustom} from "../../axiosSettings";
-
 import { uploadImage } from "../../utils/uploadImage";
 
 import { useForm } from 'react-hook-form';
@@ -15,29 +11,28 @@ import SimpleMDE from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
 import { useSimpleMdeOptions } from "./useSimpleMdeOptions";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
 import { PulseLoader } from "react-spinners";
-import { useAppDispatch } from "../../redux/hooks";
-import { fetchPosts, fetchTopTags } from "../../redux/posts/postsSlice";
+import { useCreatePostMutation, useGetPostQuery, useUpdatePostMutation } from "../../redux/posts/postsApi";
 
 
 
-export const CreatePost = () =>
-{
+export const CreatePost = () => {
     const { id: idFromLink } = useParams();
-
-    const dispatch = useAppDispatch();
     const navigate = useNavigate();
+
+    const { data: post, error: postError, isLoading: isLoadingPost } = useGetPostQuery(idFromLink, { skip: idFromLink === undefined });
+    const [createPost] = useCreatePostMutation();
+    const [updatePost] = useUpdatePostMutation();
 
     const inputFileRef = useRef<HTMLInputElement>(null);
     const buttonSubmitRef = useRef<HTMLButtonElement>(null);
 
+    const [isCreatePostLoading, setIsCreatePostLoading] = useState(true);
     const [isCreatingPost, setIsCreatingPost] = useState(false);
-    const [isLoadingImgAndDesc, setIsLoadingImgAndDesc] = useState(true);
-    const [isLoadingDefaults, setIsLoadingDefaults] = useState(true);
 
     const noPostImgUrl = process.env.REACT_APP_BACKEND as string + process.env.REACT_APP_NOIMG as string;
 
@@ -49,26 +44,24 @@ export const CreatePost = () =>
     const [imgExtError, setImgExtError] = useState("");
 
 
+    
+    useEffect(() => {
+        if (idFromLink) {
+            if (post) {
+                setText(post.text);
+                setPostImgPath(post.postImg);
+                setPostImgUrl(process.env.REACT_APP_BACKEND + post.postImg);
 
-    useEffect(() =>
-    {
-        (async () =>
-        {
-            if (idFromLink)
-            {
-                try
-                {
-                    const { data } = await axiosCustom.get<IPost>(`/posts/${idFromLink}`);
-                    setText(data.text);
-                    setPostImgPath(data.postImg);
-                    setPostImgUrl(process.env.REACT_APP_BACKEND + data.postImg);
-                }
-                catch (error) { console.error("Could not get the post!", error); }
+                // React hook form default values.
+                reset({
+                    title: post?.title,
+                    tags: post?.tags.toString().replace(/,/g, " ")
+                });
             }
+        }
 
-            setIsLoadingImgAndDesc(false);
-        })();
-    }, [idFromLink]);
+        if (!isLoadingPost) setIsCreatePostLoading(false);
+    }, [post]);
 
 
 
@@ -84,17 +77,15 @@ export const CreatePost = () =>
         });
 
 
-    const { register, handleSubmit, formState: { errors } } = useForm<{ title: string, tags: string | undefined, }>(
+    const { register, handleSubmit, reset, formState: { errors } } = useForm<{ title: string, tags: string | undefined; }>(
         {
             resolver: yupResolver(schema),
-            defaultValues: async () =>
-            {
-                if (!idFromLink) { setIsLoadingDefaults(false); return { title: "", tags: "" }; }
-
-                const {data} = await axiosCustom.get<IPost>(`/posts/${idFromLink}`);
-                setIsLoadingDefaults(false);
-                return { title: data.title, tags: data.tags.toString().replace(/,/g, " ") };
-            },
+            defaultValues: useMemo(() => {
+                return {
+                    title: post?.title,
+                    tags: post?.tags.toString().replace(/,/g, " ")
+                };
+            }, [post])
         });
     //----------------------------------------------------------------------------------------------------------------
 
@@ -103,8 +94,7 @@ export const CreatePost = () =>
     // simple MDE ----------------------------------------------------------------------------------------------------
     const simpleMdeOptions = useSimpleMdeOptions();
 
-    const simpleMdeOnChange = useCallback((value: string) =>
-    {
+    const simpleMdeOnChange = useCallback((value: string) => {
         if (value.replace(/\s/g, "") === "") { setNoTextError(i => ({ ...i, status: true, message: "You must add a description" })); }
         else if (value.length >= 5000) { setNoTextError(i => ({ ...i, status: true, message: "Max. description lenght is 5000 characters" })); }
         else { setNoTextError(i => ({ ...i, status: false, message: "" })); }
@@ -116,35 +106,32 @@ export const CreatePost = () =>
 
 
     // Create the post if validation succeeds ------------------------------------------------------------------------
-    const onSubmit = async (onSubmitValues: { title: string, tags: string | undefined; }) =>
-    {
-        try
-        {
+    const onSubmit = async (onSubmitValues: { title: string, tags: string | undefined; }) => {
+        try {
             setIsCreatingPost(true);
 
             if (!inputFileRef.current?.files) return;
             if (text === "") { setNoTextError(i => ({ ...i, status: true, message: "You must add a description" })); return; }
 
             const croppedImgPath = await uploadImage(inputFileRef.current.files[0] as File);
-            
+
             const formattedTags = (onSubmitValues.tags && onSubmitValues.tags[0] !== "") ? onSubmitValues.tags?.replace(/[\s#]+/g, ' ').trim().split(" ") : [];
 
             const body = {
                 title: onSubmitValues.title,
                 tags: formattedTags,
                 text,
-                postImg: (croppedImgPath) ? croppedImgPath : (postImgUrl === noPostImgUrl) ? process.env.REACT_APP_NOIMG : postImgPath,
+                postImg: (croppedImgPath) ? croppedImgPath : (postImgUrl === noPostImgUrl) ? process.env.REACT_APP_NOIMG as string : postImgPath,
             };
 
-            // If original image hasn't been affected - do not delete it
+            // If original image hasn't been affected - do not delete the current image.
             const oldPostImgQuery = (postImgUrl === noPostImgUrl) ? `/?oldPostImg=${postImgPath}` : "";
-            const { data } = idFromLink
-                ? await axiosCustom.patch(`/posts/${idFromLink}${oldPostImgQuery}`, body)
-                : await axiosCustom.post("/posts", body);
 
-            dispatch(fetchPosts());
-            dispatch(fetchTopTags());
-            navigate(`/posts/${idFromLink ? idFromLink : data._id}`);
+            const resultData = idFromLink
+                ? await updatePost({ id: idFromLink, oldPostImgQuery, ...body }).unwrap()
+                : await createPost(body).unwrap();;
+
+            navigate(`/posts/${idFromLink ? idFromLink : resultData?._id}`);
         }
         catch (error) { console.error("Could not create the new post!", error); }
         finally { setIsCreatingPost(false); }
@@ -153,7 +140,8 @@ export const CreatePost = () =>
 
 
 
-    if (isLoadingImgAndDesc || isLoadingDefaults) return <LoadingScreen />;
+    if (postError) { return <p className="error">Could not get the post, please try again later.</p>; }
+    if (isCreatePostLoading) return <LoadingScreen />;
 
 
 
@@ -162,12 +150,11 @@ export const CreatePost = () =>
             <form className="create-post" onSubmit={handleSubmit(onSubmit)} >
 
                 <div className="create-post__preview-container">
-                    <img className="create-post__preview" src={(postImgUrl !== noPostImgUrl) ? postImgUrl : noPostImgUrl} alt="Post preview" />
+                    <img className="create-post__preview" src={postImgUrl} alt="Post preview" />
                 </div>
                 {imgExtError && <p className="create-post__error">{imgExtError}</p>}
 
-                <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={(e) =>
-                {
+                <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={(e) => {
                     if (!inputFileRef.current?.files) return;
 
                     // Size check

@@ -1,23 +1,24 @@
 import "./sass/style.scss";
 
-import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from "react-router-dom";
 import { SignUp } from "./pages/signUp/SignUp";
 import { SignIn } from "./pages/signIn/SignIn";
 import { UserProfile } from "./pages/userProfile/UserProfile";
 import { Home } from "./pages/home/Home";
 import { FullPost } from "./pages/fullPost/FullPost";
 import { CreatePost } from "./pages/createPost/CreatePost";
-import { useAppDispatch } from "./redux/hooks";
-import { useEffect } from "react";
-import { fetchMe } from "./redux/slices/authSlice";
 import { TagPage } from "./pages/home/tagPage/TagPage";
-import { fetchPosts, fetchTopTags } from "./redux/posts/postsSlice";
+
+import { useAppDispatch } from "./redux/hooks";
+import { fetchMe } from "./redux/auth/authSlice";
+
+import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from "react-router-dom";
+import { useEffect } from "react";
 import { RootLayout } from "./layouts/RootLayout";
 
 function App()
 {
   const dispatch = useAppDispatch();
-  useEffect(() => { dispatch(fetchMe()); dispatch(fetchTopTags()); dispatch(fetchPosts()); }, [dispatch]);
+  useEffect(() => { dispatch(fetchMe()); }, [dispatch]);
 
   const router = createBrowserRouter(
     createRoutesFromElements(

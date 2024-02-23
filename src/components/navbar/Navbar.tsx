@@ -7,7 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { fetchPosts } from "../../redux/posts/postsSlice";
-import { isCurrentUserSignedIn, signOut } from "../../redux/slices/authSlice";
+import { isCurrentUserSignedIn, signOut } from "../../redux/auth/authSlice";
 
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "../modal/Modal";

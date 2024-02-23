@@ -2,8 +2,7 @@ import "./Home.scss";
 
 import { IPost } from "../../models/IPost";
 
-import { useAppSelector } from "../../redux/hooks";
-import { useGetPostsQuery, useGetTopTagsQuery } from "../../redux/posts/postsApi";
+import {useGetPostsQuery } from "../../redux/posts/postsApi";
 
 import { Post } from "./post/Post";
 import { TopTags } from "./topTags/TopTags";
@@ -15,16 +14,10 @@ import { useEffect, useState } from "react";
 
 
 export const Home = () => {
-    // const { posts, tags } = useAppSelector((state) => state.allPosts);
     // todo: log errors (in other files also (E.g. TagPage.tsx))
     const { data: posts, error: postsError, isLoading: isLoadingPosts } = useGetPostsQuery();
 
-    console.log("postsError", postsError);
-
-
     const [animate, setAnimate] = useState("home__posts");
-
-
 
     useEffect(() => {
         if (window.sessionStorage.getItem("home-posts-slide-in") !== "false") {

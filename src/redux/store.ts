@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 
 import { postsReducer } from './posts/postsSlice';
-import { authReducer } from './slices/authSlice';
+import { authReducer } from './auth/authSlice';
 
 import { featherApi } from './api/featherApi';
 

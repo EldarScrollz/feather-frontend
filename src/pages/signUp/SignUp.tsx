@@ -6,19 +6,19 @@ import Cropper, { Area } from "react-easy-crop";
 import { returnCroppedImage } from "../../utils/returnCroppedImage";
 
 import { useForm } from 'react-hook-form';
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+// import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useRef, useState } from "react";
 
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-import { fetchRegister, isCurrentUserSignedIn } from "../../redux/slices/authSlice";
+import { /* fetchRegister, */ isCurrentUserSignedIn } from "../../redux/auth/authSlice";
 import { Navigate } from "react-router-dom";
 
 
 
 export const SignUp = () => {
-    const dispatch = useAppDispatch();
+    // const dispatch = useAppDispatch();
     const isUserSignedIn = useAppSelector(isCurrentUserSignedIn);
 
     const noAvatarUrl = process.env.REACT_APP_BACKEND as string + process.env.REACT_APP_NOIMG as string;

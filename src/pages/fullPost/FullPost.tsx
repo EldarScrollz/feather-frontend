@@ -25,7 +25,7 @@ import { PulseLoader } from "react-spinners";
 import { formatRelativeTime } from "../../utils/relativeTimeFormatter";
 import { Modal } from "../../components/modal/Modal";
 import { fetchPosts } from "../../redux/posts/postsSlice";
-import { signOut } from "../../redux/slices/authSlice";
+import { signOut } from "../../redux/auth/authSlice";
 
 
 

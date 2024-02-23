@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-import { fetchMe, signOut } from "../../redux/slices/authSlice";
+import { fetchMe, signOut } from "../../redux/auth/authSlice";
 
 import { PulseLoader } from "react-spinners";
 import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";

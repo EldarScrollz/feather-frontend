@@ -7,7 +7,7 @@ import { useState } from "react";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-import { fetchAuth, isCurrentUserSignedIn } from "../../redux/slices/authSlice";
+import { fetchAuth, isCurrentUserSignedIn } from "../../redux/auth/authSlice";
 import { Navigate } from "react-router-dom";
 
 

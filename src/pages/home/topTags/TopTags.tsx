@@ -4,15 +4,19 @@ import { Link } from "react-router-dom";
 
 import { useGetTopTagsQuery } from "../../../redux/posts/postsApi";
 
-export const TopTags = (/*{ tags }: { tags: string[] }*/) => {
+import { LoadingScreen } from "../../../components/loadingScreen/LoadingScreen";
+import { SquareLoader } from "react-spinners";
+
+export const TopTags = () => {
     const { data: topTags, error: topTagsError, isLoading: isLoadingTopTags } = useGetTopTagsQuery();
 
-    if (topTagsError) {
-        return <div className="top-tags"><strong className="error">Could not get the tags, please try again later.</strong></div>
-    }
+    if (topTagsError) return <div className="top-tags"><p className="error">Tags error, please try again later.</p></div>;
     if (!topTags || topTags.length <= 0) return <></>;
-
-
+    if (isLoadingTopTags) return (
+        <div className="top-tags" style={{ display: "flex", justifyContent: "center" }}>
+            <SquareLoader color={"#c52b2b"} size={80} />
+        </div>
+    );
 
     return (
         <div className="top-tags">
