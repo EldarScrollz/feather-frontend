@@ -2,31 +2,46 @@ import { featherApi } from "../api/featherApi";
 
 import { IPost } from "../../models/IPost";
 
+
+
 const postsApi = featherApi.injectEndpoints({
     endpoints: builder => ({
         getPosts: builder.query<IPost[], void>({
             query: () => '/posts',
-            providesTags: ['Post']
+            providesTags: ["Post"]
         }),
         getPost: builder.query<IPost, string | undefined>({
-            query: (postId) => `/posts/${postId}`
+            query: (postId) => `/posts/${postId}`,
+            providesTags: ["Post"]
         }),
-        createPost: builder.mutation<IPost, { title: string, tags: string[], text: string, postImg: string; }>({
-            query: post => ({
+
+        createPost: builder.mutation<IPost, Partial<IPost>>({
+            query: (post) => ({
                 url: '/posts',
                 method: 'POST',
                 body: post
             }),
-            invalidatesTags: ['Post']
+            invalidatesTags: ["Post"]
         }),
-        updatePost: builder.mutation<IPost, { id: string, oldPostImgQuery: string, title: string, tags: string[], text: string, postImg: string; }>({
-            query: ({ id, oldPostImgQuery, ...post }) => ({
-                url: `/posts/${id}${oldPostImgQuery}`,
+
+        updatePost: builder.mutation<IPost, { id: string, oldPostImgQuery?: string | void, body: Partial<IPost>; }>({
+            query: ({ id, oldPostImgQuery, body }) => ({
+                url: `/posts/${id}`,
                 method: 'PATCH',
-                body: post
+                body: body,
+                params: { oldPostImgQuery }
             }),
-            invalidatesTags: ['Post']
+            invalidatesTags: ["Post"]
         }),
+
+        deletePost: builder.mutation<string, string>({
+            query: (postId) => ({
+                url: `/posts/${postId}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ["Post"]
+        }),
+
         getTopTags: builder.query<string[], void>({
             query: () => '/posts/topTags'
         })
@@ -38,6 +53,9 @@ export const {
     useGetPostQuery,
 
     useCreatePostMutation,
+
     useUpdatePostMutation,
+
+    useDeletePostMutation,
 
     useGetTopTagsQuery } = postsApi;

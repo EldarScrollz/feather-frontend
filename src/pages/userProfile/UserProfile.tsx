@@ -1,28 +1,26 @@
 import "./UserProfile.scss";
 import "../../utils/imgCropper.scss";
 
-import { IUser } from "../../models/IUser";
-
 import { axiosCustom } from "../../axiosSettings";
 
 import { uploadImage } from "../../utils/uploadImage";
-import Cropper, { Area } from "react-easy-crop";
 import { returnCroppedImage } from "../../utils/returnCroppedImage";
 
-import { useEffect, useRef, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Cropper, { Area } from "react-easy-crop";
 import { useForm } from 'react-hook-form';
 import { useNavigate } from "react-router-dom";
+import { PulseLoader } from "react-spinners";
+
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { signOut } from "../../redux/auth/authSlice";
+import { fetchPosts } from "../../redux/posts/postsSlice";
 
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-import { fetchMe, signOut } from "../../redux/auth/authSlice";
-
-import { PulseLoader } from "react-spinners";
-import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
 import { Modal } from "../../components/modal/Modal";
-import { fetchPosts } from "../../redux/posts/postsSlice";
+import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
 
 
 
@@ -39,9 +37,8 @@ export const UserProfile = () => {
     const navigate = useNavigate();
 
     const dispatch = useAppDispatch();
-    const auth = useAppSelector((state) => state.auth);
+    const userData = useAppSelector((state) => state.auth.userData);
 
-    const [isProfileLoading, setisProfileLoading] = useState(true);
     const [isSubmitLoading, setIsSubmitLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
@@ -70,15 +67,6 @@ export const UserProfile = () => {
 
 
 
-    useEffect(() => {
-        if (auth.userData?.userAvatar && auth.userData?.userAvatar !== process.env.REACT_APP_NOIMG as string) {
-            setAvatarPath(auth.userData?.userAvatar);
-            setAvatarUrl(process.env.REACT_APP_BACKEND + auth.userData?.userAvatar);
-        }
-    }, [auth]);
-
-
-
     // Yup validation -------------------------------------------------------------------------------------------------------
     const schema = yup.object().shape(
         {
@@ -101,30 +89,42 @@ export const UserProfile = () => {
                 }),
         });
 
-    const { register, handleSubmit, setError, formState: { errors }, setValue } = useForm<IProfileData>(
+    const { register, handleSubmit, setError, formState: { errors }, setValue, reset } = useForm<IProfileData>(
         {
             resolver: yupResolver(schema),
-            defaultValues: async () => {
-                const { data } = await axiosCustom.get<IUser>("/auth/me");
-
-                setisProfileLoading(false);
-
+            defaultValues: useMemo(() => {
                 return {
-                    email: data.email,
-                    name: data.name,
+                    email: userData?.email,
+                    name: userData?.name,
                     isChangePassword: false,
                     currentPassword: "",
                     newPassword: "",
                     confirmNewPassword: "",
                 };
-            },
+            }, [userData])
         });
     //-----------------------------------------------------------------------------------------------------------------------
 
 
+    
+    useEffect(() => {
+        if (userData?.userAvatar && userData?.userAvatar !== process.env.REACT_APP_NOIMG as string) {
+            setAvatarPath(userData?.userAvatar);
+            setAvatarUrl(process.env.REACT_APP_BACKEND + userData?.userAvatar);
+        }
+
+        // React hook form default values.
+        reset({
+            email: userData?.email,
+            name: userData?.name,
+        });
+    }, [userData, reset]);
+
+
+
     const handleAccountDelete = async () => {
         try {
-            await axiosCustom.delete(`/auth/deleteProfile/${auth.userData?._id}/${deleteUserPassword}`);
+            await axiosCustom.delete(`/auth/deleteProfile/${userData?._id}/${deleteUserPassword}`);
             dispatch(signOut());
             navigate("/");
         }
@@ -167,7 +167,6 @@ export const UserProfile = () => {
                     });
             }
 
-            dispatch(fetchMe());
             dispatch(fetchPosts());
 
             navigate("/");
@@ -179,7 +178,7 @@ export const UserProfile = () => {
 
 
 
-    if (isProfileLoading || auth.status === "loading") return <LoadingScreen />;
+    if (!userData) return <LoadingScreen />;
 
 
 

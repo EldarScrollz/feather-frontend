@@ -9,16 +9,26 @@ import { CreatePost } from "./pages/createPost/CreatePost";
 import { TagPage } from "./pages/home/tagPage/TagPage";
 
 import { useAppDispatch } from "./redux/hooks";
-import { fetchMe } from "./redux/auth/authSlice";
 
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from "react-router-dom";
 import { useEffect } from "react";
 import { RootLayout } from "./layouts/RootLayout";
+import { useGetSignedInUserQuery } from "./redux/auth/authApi";
+import { setUserData } from "./redux/auth/authSlice";
 
-function App()
-{
+function App() {
   const dispatch = useAppDispatch();
-  useEffect(() => { dispatch(fetchMe()); }, [dispatch]);
+  const { data } = useGetSignedInUserQuery();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        data && await dispatch(setUserData(data));
+      } catch (error) {
+        console.error("Could not get the signed in user's data!", error);
+      }
+    })();
+  }, [dispatch, data]); //todo: make the loading logic for useGetSignedInUserQuery (data).
 
   const router = createBrowserRouter(
     createRoutesFromElements(

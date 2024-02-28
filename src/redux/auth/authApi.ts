@@ -1,16 +1,39 @@
 import { IUser } from "../../models/IUser";
 import { featherApi } from "../api/featherApi";
 
-const postsApi = featherApi.injectEndpoints({
+const authApi = featherApi.injectEndpoints({
     endpoints: builder => ({
-        getMe: builder.query<IUser, void>({
+        getSignedInUser: builder.query<IUser, void>({
             query: () => '/auth/me',
         }),
-        signUpUser: builder.query<IUser, { email: string, password: string; }>({
-            query: () => '/auth/register',
+
+        signUpUser: builder.mutation<IUser, Partial<IUser>>({
+            query: (body) => ({
+                url: '/auth/register',
+                method: 'POST',
+                body: body
+            })
         }),
-        signInUser: builder.query<IUser, { email: string, password: string; }>({
-            query: () => '/auth/login',
-        })
+        signInUser: builder.mutation<IUser, Partial<IUser>>({
+            query: (body) => ({
+                url: '/auth/login',
+                method: 'POST',
+                body: body
+            })
+        }),
+        signOutUser: builder.mutation<string, void>({
+            query: () => ({
+                url: '/auth/logout',
+                method: 'POST',
+            })
+        }),
     })
 });
+
+export const {
+    useGetSignedInUserQuery,
+
+    useSignUpUserMutation,
+    useSignInUserMutation,
+    useSignOutUserMutation
+} = authApi;

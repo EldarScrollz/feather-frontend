@@ -1,17 +1,19 @@
 import "./Comment.scss";
 
 import { IComment } from "../../../models/IComment";
-
-import {axiosCustom} from "../../../axiosSettings";
+import { IUser } from "../../../models/IUser";
 
 import { useAppSelector } from "../../../redux/hooks";
-import { useEffect, useRef, useState } from "react";
 
-import { Reply } from "./replies/Reply";
+import { useEffect, useRef, useState } from "react";
 import { PulseLoader } from "react-spinners";
 import ReactMarkdown from "react-markdown";
+
+import { Reply } from "./replies/Reply";
 import { formatRelativeTime } from "../../../utils/relativeTimeFormatter";
 import { Modal } from "../../../components/modal/Modal";
+import { useCreateCommentMutation, useDeleteCommentMutation, useGetRepliesQuery, useUpdateCommentMutation } from "../../../redux/comments/commentsApi";
+import { useUpdatePostMutation } from "../../../redux/posts/postsApi";
 
 
 
@@ -22,8 +24,20 @@ interface ICommentProps {
 }
 
 export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCount }: ICommentProps) => {
-    const userInfo = useAppSelector((state) => state.auth);
+    const user = comment.user as IUser;
+
     const moddedDate = formatRelativeTime(new Date(comment.createdAt));
+
+    const userData = useAppSelector((state) => state.auth.userData);
+
+
+    const { data: replies, error: repliesError, isLoading: isLoadingReplies } = useGetRepliesQuery(comment._id);
+
+    const [createComment] = useCreateCommentMutation();
+    const [updateComment] = useUpdateCommentMutation();
+    const [deleteComment] = useDeleteCommentMutation();
+
+    const [updatePost] = useUpdatePostMutation();
 
     const [showComment, setShowComment] = useState(true);
     const [showReplies, setShowReplies] = useState(false);
@@ -40,14 +54,8 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
 
     const [isReplyingLoading, setIsReplyingLoading] = useState(false);
     const [isReplying, setIsReplying] = useState(false);
-    const [commentReplies, setCommentReplies] = useState<IComment[]>([]);
+    // const [commentReplies, setCommentReplies] = useState<IComment[]>([]);
     const [commentRepliesCount, setCommentRepliesCount] = useState(comment.repliesCount);
-
-    // Get replies on start
-    useEffect(() => {
-        axiosCustom.get(`/comments/replies/${comment._id}`).then((res) => { setCommentReplies(res.data); })
-            .catch((error) => { console.error("Could not get comment's replies", error); });
-    }, [comment._id]);
 
 
 
@@ -79,23 +87,35 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
 
 
 
+    // if (!replies) return <><h1>todo: delete this</h1></>;
+
+    // todo: How should we handle this. Supply both comments and replies as props from fullPost or -
+    // - handle everything here (make loading spinner for "replies count" button when loading replies)?
+
+
+
     // Comments ----------------------------------------------------------------------
-    const deleteComment = async () => {
+    const handleDeleteComment = async () => {
+        if (!replies) return console.error('Could not delete the comment, "replies" invalid!');
+
         try {
-            const data =
+            const commentBody =
             {
                 _id: comment._id,
                 postId: comment.postId,
                 commentParentId: comment.commentParentId,
             };
 
-            await axiosCustom.delete(`/comments/${comment._id}`, { data });
+            await deleteComment({ commentId: comment._id, body: commentBody }).unwrap();
 
             // Decrease commentsCount when deleting the main comment (we should take replies into account) -----------------
-            const decreaseAmount = commentReplies.length + 1;
+            const decreaseAmount = replies.length + 1;
             setFullPostCommentsCount((prev) => (prev - decreaseAmount) <= 0 ? 0 : (prev - decreaseAmount));
             // Update backend's commentCount (so that on page refresh the count would be synced)
-            await axiosCustom.patch(`/posts/${comment.postId}`, { commentsCount: (fullPostCommentsCount - decreaseAmount) <= 0 ? 0 : (fullPostCommentsCount - decreaseAmount) });
+            await updatePost({
+                id: comment.postId,
+                body: { commentsCount: ((fullPostCommentsCount - decreaseAmount) <= 0) ? 0 : (fullPostCommentsCount - decreaseAmount) }
+            }).unwrap();
             // -------------------------------------------------------------------------------------------------------------
 
             setShowComment(false);
@@ -115,12 +135,13 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
 
         setIsLoadingEditing(true);
 
-        try { await axiosCustom.patch(`/comments/${comment._id}`, { text: editedCommentText }); }
+        try {
+            updateComment({ commentId: comment._id, body: { text: editedCommentText } }).unwrap();
+        }
         catch (error) { console.error("Could not edit the comment", error); }
 
         setCurrentCommentText(editedCommentText);
         setIsCommentEdited(true);
-
 
         setEditingcomment(false);
 
@@ -130,7 +151,7 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
 
 
     const replyToComment = async () => {
-        if (!replyTextareaRef.current || !replyTextareaRef.current.value) return;
+        if (!replyTextareaRef.current || !replyTextareaRef.current.value || !userData) return;
 
         const replyText = replyTextareaRef.current.value;
 
@@ -144,13 +165,11 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
             postId: comment.postId,
             commentParentId: comment._id,
             text: replyText,
-            user: userInfo.userData?._id,
+            user: userData?._id,
         };
 
         try {
-            await axiosCustom.post("/comments", body);
-            // Refresh replies
-            await axiosCustom.get(`/comments/replies/${comment._id}`).then((res) => { setCommentReplies(res.data); });
+            await createComment({ ...body }).unwrap();
         }
         catch (error) { console.error("Could not create the reply", error); }
 
@@ -177,7 +196,7 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
     return (
         <div className="comment">
 
-            {userInfo.userData?._id === comment.user._id &&
+            {userData?._id === user._id &&
                 <div className="comment__options">
                     <button onClick={() => setShowModal(true)}>X</button>
                     <button onClick={() => { setEditingcomment(!isEditingComment); }}>{isEditingComment ? "Cancel editing" : "edit"}</button>
@@ -185,9 +204,9 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
             }
 
             <div className="comment__user-wrapper">
-                <img src={process.env.REACT_APP_BACKEND + comment.user.userAvatar} alt="User's avatar" />
+                <img src={process.env.REACT_APP_BACKEND + user.userAvatar} alt="User's avatar" />
                 <div className="comment__user">
-                    <p>{comment.user.name}</p>
+                    <p>{user.name}</p>
                     <p>{moddedDate} {isCommentEdited && "(edited)"}</p>
                 </div>
             </div>
@@ -224,18 +243,18 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
             </div>
 
 
-            <div className="comment_replies" style={{ display: showReplies ? "inherit" : "none" }}>
-                {commentReplies?.map((e: IComment) => {
+            <div className="comment_replies" style={{ display: !showReplies || (commentRepliesCount <= 0) ? "none" : "inherit" }}>
+                {replies?.map((e: IComment) => {
                     return <Reply
                         key={e._id}
                         comment={e}
                         setFullPostCommentsCount={setFullPostCommentsCount}
                         setParentCommentsCount={setCommentRepliesCount}
-                        userData={userInfo.userData} />;
+                        userData={userData} />;
                 })}
             </div>
 
-            {showModal && <Modal text={"Delete the comment?"} setShowModal={setShowModal} performAction={() => deleteComment()} />}
+            {showModal && <Modal text={"Delete the comment?"} setShowModal={setShowModal} performAction={() => handleDeleteComment()} />}
         </div >
     );
-};;
+};

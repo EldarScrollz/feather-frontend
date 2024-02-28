@@ -44,7 +44,7 @@ export const CreatePost = () => {
     const [imgExtError, setImgExtError] = useState("");
 
 
-    
+
     useEffect(() => {
         if (idFromLink) {
             if (post) {
@@ -128,8 +128,8 @@ export const CreatePost = () => {
             const oldPostImgQuery = (postImgUrl === noPostImgUrl) ? `/?oldPostImg=${postImgPath}` : "";
 
             const resultData = idFromLink
-                ? await updatePost({ id: idFromLink, oldPostImgQuery, ...body }).unwrap()
-                : await createPost(body).unwrap();;
+                ? await updatePost({ id: idFromLink, oldPostImgQuery, body }).unwrap()
+                : await createPost(body).unwrap();
 
             navigate(`/posts/${idFromLink ? idFromLink : resultData?._id}`);
         }

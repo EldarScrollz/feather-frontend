@@ -1,23 +1,25 @@
 import "./SignIn.scss";
 
 import { useForm } from 'react-hook-form';
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useState } from "react";
+import { Navigate } from "react-router-dom";
+
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { useSignInUserMutation } from "../../redux/auth/authApi";
+import { isCurrentUserSignedIn, setUserData } from "../../redux/auth/authSlice";
+// import { fetchAuth, isCurrentUserSignedIn } from "../../redux/auth/authSlice";
 
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-import { fetchAuth, isCurrentUserSignedIn } from "../../redux/auth/authSlice";
-import { Navigate } from "react-router-dom";
 
 
-
-export const SignIn = () =>
-{
+export const SignIn = () => {
     const [isUser404, setIsUser404] = useState(false);
 
     const dispatch = useAppDispatch();
     const isUserSignedIn = useAppSelector(isCurrentUserSignedIn);
+    const [signInUser] = useSignInUserMutation();
 
 
 
@@ -34,11 +36,11 @@ export const SignIn = () =>
 
 
 
-    const onSubmit = async (onSubmitValues: {email: string, password: string}) =>
-    {
-        const data = await dispatch(fetchAuth(onSubmitValues));
-
-        if (!data.payload) { return setIsUser404(true); }
+    const onSubmit = async (onSubmitValues: { email: string, password: string; }) => {
+        // const data = await dispatch(fetchAuth(onSubmitValues));
+        const data = await signInUser({...onSubmitValues}).unwrap()
+        if (!data) { return setIsUser404(true); }
+        await dispatch(setUserData(data))
     };
 
 

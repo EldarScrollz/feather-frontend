@@ -4,6 +4,7 @@ import { axiosCustom } from "../../axiosSettings";
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
+// todo: delete everything related to AsyncThunks.
 export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
     const { data } = await axiosCustom.get<IPost[]>("/posts");
     return data;

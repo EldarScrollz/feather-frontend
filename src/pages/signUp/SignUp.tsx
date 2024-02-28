@@ -6,20 +6,22 @@ import Cropper, { Area } from "react-easy-crop";
 import { returnCroppedImage } from "../../utils/returnCroppedImage";
 
 import { useForm } from 'react-hook-form';
-// import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useRef, useState } from "react";
 
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-import { /* fetchRegister, */ isCurrentUserSignedIn } from "../../redux/auth/authSlice";
+import { /* fetchRegister, */ isCurrentUserSignedIn, setUserData } from "../../redux/auth/authSlice";
 import { Navigate } from "react-router-dom";
+import { useSignUpUserMutation } from "../../redux/auth/authApi";
 
 
 
 export const SignUp = () => {
-    // const dispatch = useAppDispatch();
+    const dispatch = useAppDispatch();
     const isUserSignedIn = useAppSelector(isCurrentUserSignedIn);
+    const [signUpUser] = useSignUpUserMutation();
 
     const noAvatarUrl = process.env.REACT_APP_BACKEND as string + process.env.REACT_APP_NOIMG as string;
     const [avatarUrl, setAvatarUrl] = useState(noAvatarUrl);
@@ -57,12 +59,16 @@ export const SignUp = () => {
     const onSubmit = async (onSubmitValues: { email: string, password: string, name: string; }) => {
         if (!inputFileRef.current?.files) return;
 
-        const imgPath = await uploadImage(croppedAvatarFile as File);
-
-        const props = { ...onSubmitValues, userAvatar: (avatarUrl === noAvatarUrl) ? process.env.REACT_APP_NOIMG as string : imgPath };
-        const data = await dispatch(fetchRegister(props));
-
-        if (data.payload.errorMessage) return setEmailNameError(data.payload.errorMessage);
+        try {
+            const imgPath = await uploadImage(croppedAvatarFile as File);
+            const props = { ...onSubmitValues, userAvatar: (avatarUrl === noAvatarUrl) ? process.env.REACT_APP_NOIMG as string : imgPath };
+            const userData = await signUpUser({ ...props }).unwrap();
+            await dispatch(setUserData(userData));
+        } catch (error) {
+            const serverError = (error as { data: { errorMessage: string; }; }).data.errorMessage;
+            if (serverError) setEmailNameError(serverError);
+            else console.error("Could not sign up!", error);
+        }
     };
 
 

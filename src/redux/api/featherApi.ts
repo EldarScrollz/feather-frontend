@@ -6,6 +6,6 @@ export const featherApi = createApi({
     baseUrl: process.env.REACT_APP_BACKEND,
     credentials: "include",
   }),
-  tagTypes: ['Post'],
+  tagTypes: ["Post", "Comment"],
   endpoints: builder => ({})
 });

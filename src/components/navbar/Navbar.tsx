@@ -1,8 +1,6 @@
 import "./Navbar.scss";
 import logo from "./featherLogo.svg";
 
-import { axiosCustom } from "../../axiosSettings";
-
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
@@ -11,12 +9,14 @@ import { isCurrentUserSignedIn, signOut } from "../../redux/auth/authSlice";
 
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "../modal/Modal";
+import { useSignOutUserMutation } from "../../redux/auth/authApi";
 
 
 export const Navbar = () => {
     const navigate = useNavigate();
 
     const dispatch = useAppDispatch();
+    const [signOutUser] = useSignOutUserMutation();
 
     const isUserSignedIn = useAppSelector(isCurrentUserSignedIn);
     const navbarRef = useRef<HTMLDivElement>(null);
@@ -40,9 +40,13 @@ export const Navbar = () => {
 
 
     const handleSignOut = async () => {
-        await axiosCustom.post(`/auth/logout`);
-        dispatch(signOut());
-        navigate("/");
+        try {
+            await signOutUser().unwrap();
+            dispatch(signOut());
+            navigate("/");
+        } catch (error) {
+            console.error("Could not sign out!", error);
+        }
     };
 
 

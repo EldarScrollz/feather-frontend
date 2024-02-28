@@ -6,50 +6,68 @@ import deleteIcon from "../home/post/deleteIcon.svg";
 import editIcon from "../home/post/editIcon.svg";
 import heartsIcon from "../home/post/heartsIcon.svg";
 
-import { IPost } from "../../models/IPost";
 import { IComment } from "../../models/IComment";
-import { IHeart } from "../../models/IHeart";
-
-import { axiosCustom } from "../../axiosSettings";
+import { Comment } from "./commentSection/Comment";
 
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useNavigate } from "react-router-dom";
-
-import { Comment } from "./commentSection/Comment";
 import ReactMarkdown from "react-markdown";
+import { PulseLoader } from "react-spinners";
+
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { signOut } from "../../redux/auth/authSlice";
+import { useDeletePostMutation, useGetPostQuery } from "../../redux/posts/postsApi";
+import { useCreateHeartMutation, useDeleteHeartMutation, useHasUserHeartedPostQuery } from "../../redux/hearts/heartsApi";
 
 import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
-import { PulseLoader } from "react-spinners";
-import { formatRelativeTime } from "../../utils/relativeTimeFormatter";
 import { Modal } from "../../components/modal/Modal";
-import { fetchPosts } from "../../redux/posts/postsSlice";
-import { signOut } from "../../redux/auth/authSlice";
+
+import { formatRelativeTime } from "../../utils/relativeTimeFormatter";
+import { useCreateCommentMutation, useGetCommentsByPostIdQuery } from "../../redux/comments/commentsApi";
 
 
 
 export const FullPost = () => {
     const { id: postId } = useParams();
-
-    const userInfo = useAppSelector((state) => state.auth);
-    const dispatch = useAppDispatch();
     const navigate = useNavigate();
+
+    const userData = useAppSelector((state) => state.auth.userData);
+    const dispatch = useAppDispatch();
+
+    // Get post.
+    const { data: post, error: postError, isLoading: isLoadingPost } = useGetPostQuery(postId);
+    const [deletePost] = useDeletePostMutation();
+
+    // Has user hearted post.
+    const { data: heartData, error: heartError, isLoading: isLoadingHeart } = useHasUserHeartedPostQuery(
+        { postId, userId: userData?._id },
+        { skip: postId === undefined || userData?._id === undefined });
+    // Create heart.
+    const [createHeart] = useCreateHeartMutation();
+    // Delete heart.
+    const [deleteHeart] = useDeleteHeartMutation();
+
+    // Get comments by post id.
+    const { data: comments, isLoading: isLoadingComments } = useGetCommentsByPostIdQuery(postId,
+        { skip: postId === undefined });
+
+    // Create comment.
+    const [createComment] = useCreateCommentMutation();
 
     const [isHeartLoading, setIsHeartLoading] = useState(false);
     const [heartsCount, setHeartsCount] = useState(0);
     const [isUserInHearts, setIsUserInHearts] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
+
     const [isFullPostLoading, setIsFullPostloading] = useState(true);
     const [isCommentLoading, setIsCommentLoading] = useState(false);
 
-    const [fullPostData, setFullPostData] = useState<IPost | null>(null);
-    const moddedDate = fullPostData && formatRelativeTime(new Date(fullPostData.createdAt));
+    const moddedDate = post && formatRelativeTime(new Date(post.createdAt));
     const [fullPostCommentsCount, setFullPostCommentsCount] = useState(0);
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const [postComments, setPostComments] = useState<IComment[]>([]);
     const [createdCommentText, setCreatedCommentText] = useState("");
     const [createdCommentErrorMsg, setCreatedCommentErrorMsg] = useState("");
 
@@ -58,26 +76,24 @@ export const FullPost = () => {
     useEffect(() => {
         (async () => {
             try {
-                const { data: postData } = await axiosCustom.get<IPost>(`/posts/${postId}`);
+                if (post) {
+                    setHeartsCount(post.heartsCount);
+                    setFullPostCommentsCount(post.commentsCount);
+                }
 
-                setFullPostData(postData);
-                setHeartsCount(postData.heartsCount);
-                setFullPostCommentsCount(postData.commentsCount);
-
-                // Check if user already "hearted" this post
-                const { data: heartData } = await axiosCustom.get<IHeart>(`hearts/hasUserHeart/${postId}/${userInfo.userData?._id}`);
+                // Check if user already "hearted" this post.
                 setIsUserInHearts(heartData ? true : false);
-
-                const { data: commentsData } = await axiosCustom.get<IComment[]>(`/comments/${postId}`);
-                setPostComments(commentsData);
-            } catch (error: any) {
+            } catch (error: any) { // todo: change error type.
                 console.error("Could not get the all the fullpost data", error);
-
                 if (error.response.status === 403) dispatch(signOut());
             }
             finally { setIsFullPostloading(false); }
         })();
-    }, [userInfo, postId, dispatch]);
+    }, [userData, postId, post, heartData, dispatch]);
+
+
+
+    if (!postId) { return <p className="error">Error: Post ID not found</p>; }
 
 
 
@@ -86,17 +102,16 @@ export const FullPost = () => {
 
         try {
             if (!isUserInHearts) {
-                await axiosCustom.post(`/hearts/${fullPostData?._id}`);
+                post?._id && await createHeart(post?._id).unwrap();
 
                 setHeartsCount(prev => prev + 1);
 
                 setIsUserInHearts(true);
             }
             else if (isUserInHearts) {
-                await axiosCustom.delete(`/hearts?postId=${fullPostData?._id}&userId=${userInfo.userData?._id}`);
+                (post?._id && userData?._id) && await deleteHeart({ postId: post?._id, userId: userData?._id }).unwrap();
 
                 setHeartsCount(prev => prev - 1);
-
                 setIsUserInHearts(false);
             }
         }
@@ -107,10 +122,9 @@ export const FullPost = () => {
 
 
 
-    const deletePost = async () => {
+    const handleDeletePost = async () => {
         try {
-            await axiosCustom.delete(`/posts/${fullPostData?._id}`);
-            dispatch(fetchPosts());
+            post?._id && await deletePost(post?._id).unwrap();
             navigate("/");
         }
         catch (error) {
@@ -133,9 +147,8 @@ export const FullPost = () => {
 
 
 
-    const createComment = async () => {
-        if (createdCommentErrorMsg.length > 0) return;
-        if (!createdCommentText) return;
+    const handelCreateComment = async () => {
+        if (createdCommentErrorMsg.length > 0 || !createdCommentText || !userData) return;
 
         setIsCommentLoading(true);
 
@@ -144,13 +157,10 @@ export const FullPost = () => {
             postId: postId,
             commentParentId: null,
             text: createdCommentText,
-            user: userInfo.userData?._id,
+            user: userData?._id,
         };
 
-        try {
-            await axiosCustom.post("/comments", body);
-            await axiosCustom.get(`/comments/${postId}`).then((res) => { setPostComments(res.data); });
-        }
+        try { await createComment(body).unwrap(); }
         catch (error) { console.error("Could not create the comment", error); }
 
         textareaRef.current!.value = "";
@@ -164,9 +174,14 @@ export const FullPost = () => {
 
 
     // Checks ----------------------------------------------------------------------------------------------------------------------
-    if ((userInfo.status !== "loading" && !userInfo.userData) || !userInfo.userData) return <p className="error">{"Sign in to view the post"}</p>;
+    if (!userData) return <p className="error">{"Sign in to view the post"}</p>;
 
-    if (!fullPostData || !postComments || isFullPostLoading) return <LoadingScreen />;
+    // todo: "!post" is probably not good.
+    if (postError) { return <p className="error">Could not get the post, please try again later.</p>; }
+
+    if (isLoadingPost || isLoadingComments || isFullPostLoading) return <LoadingScreen />;
+
+    if (!post) { return <p className="error">Could not get the post, please try again later.</p>; }
     //------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -175,40 +190,40 @@ export const FullPost = () => {
         <div className="full-post">
 
             <div className="post">
-                {userInfo.userData._id === fullPostData.user._id &&
+                {userData._id === post.user._id &&
                     <div className="post__options">
                         <button onClick={() => setShowModal(true)} className="post__delete"><img src={deleteIcon} alt="" /></button>
-                        <button onClick={() => navigate(`/posts/${fullPostData._id}/edit`)} className="post__edit"><img src={editIcon} alt="edit icon" /></button>
+                        <button onClick={() => navigate(`/posts/${post._id}/edit`)} className="post__edit"><img src={editIcon} alt="edit icon" /></button>
                     </div>
                 }
 
-                {(fullPostData.postImg && fullPostData.postImg !== process.env.REACT_APP_NOIMG) &&
+                {(post.postImg && post.postImg !== process.env.REACT_APP_NOIMG) &&
                     <div className="post__image-container">
-                        <img className="post__image" src={process.env.REACT_APP_BACKEND + fullPostData.postImg} alt="Post full preview" />
+                        <img className="post__image" src={process.env.REACT_APP_BACKEND + post.postImg} alt="Post full preview" />
                     </div>
                 }
 
                 <div className="post__about-author">
-                    <img className="post__avatar" src={process.env.REACT_APP_BACKEND + fullPostData.user.userAvatar} alt="Author's avatar" />
+                    <img className="post__avatar" src={process.env.REACT_APP_BACKEND + post.user.userAvatar} alt="Author's avatar" />
                     <div className="post__post-details">
-                        <div className="post__author"><p>{fullPostData.user.name}</p></div>
-                        {fullPostData.tags.length !== 0 ? <ul className="post__tags">{fullPostData.tags.map((e, key) => { return <li key={key}> <Link to={`/posts/tag/${e}`} >{"#" + e}</Link></li>; })}</ul> : <p>...</p>}
+                        <div className="post__author"><p>{post.user.name}</p></div>
+                        {post.tags.length !== 0 ? <ul className="post__tags">{post.tags.map((e, key) => { return <li key={key}> <Link to={`/posts/tag/${e}`} >{"#" + e}</Link></li>; })}</ul> : <p>...</p>}
                         <div className="post__date"><p>{moddedDate}</p></div>
                     </div>
                 </div>
 
                 <div className="post__title">
-                    <h2>{fullPostData.title}</h2>
+                    <h2>{post.title}</h2>
                 </div>
 
                 <div className="post__description">
-                    <ReactMarkdown className="post__description-text" children={fullPostData.text} />
+                    <ReactMarkdown className="post__description-text" children={post.text} />
                 </div>
 
                 <div className="post__footer">
                     <div className="post__footer-left-wrapper">
-                        <div className="post__footer-views"><img src={viewsIcon} alt="views icon" /> <p>{fullPostData.viewsCount}</p></div>
-                        <div className="post__footer-comments"><img src={commentsIcon} alt="comments icon" /> <p>{fullPostData.commentsCount}</p></div>
+                        <div className="post__footer-views"><img src={viewsIcon} alt="views icon" /> <p>{post.viewsCount}</p></div>
+                        <div className="post__footer-comments"><img src={commentsIcon} alt="comments icon" /> <p>{fullPostCommentsCount}</p></div>
                     </div>
 
                     {!isHeartLoading
@@ -222,7 +237,7 @@ export const FullPost = () => {
                 {createdCommentErrorMsg && <p className="full-post__error-msg">{createdCommentErrorMsg}</p>}
 
                 <div className="full-post__comment-form">
-                    <img src={process.env.REACT_APP_BACKEND + userInfo.userData.userAvatar} alt="Your avatar" />
+                    <img src={process.env.REACT_APP_BACKEND + userData.userAvatar} alt="Your avatar" />
 
                     <div className="full-post__comment-form-input">
                         <textarea ref={textareaRef} placeholder="Add a comment..." rows={1} onChange={(e) => resizeTextarea(e)} />
@@ -231,20 +246,20 @@ export const FullPost = () => {
                             <button className="full-post__clear-comment-text" onClick={() => { textareaRef.current!.value = ""; setCreatedCommentText(""); textareaRef.current && (textareaRef.current.style.height = "29px"); }}>clear</button>
 
                             {!isCommentLoading
-                                ? <button className="full-post__create-comment" onClick={createComment}>comment</button>
+                                ? <button className="full-post__create-comment" onClick={handelCreateComment}>comment</button>
                                 : <button><PulseLoader color={"#c52b2b"} size={7} /></button>
                             }
                         </div>
                     </div>
                 </div>
 
-                {postComments
-                    .filter((e: IComment) => e.commentParentId === null)
+                {comments
+                    ?.filter((e: IComment) => e.commentParentId === null)
                     .map((e: IComment) => { return <Comment key={e._id} comment={e} fullPostCommentsCount={fullPostCommentsCount} setFullPostCommentsCount={setFullPostCommentsCount} />; })
                 }
             </div>
 
-            {showModal && <Modal text={"Delete the post?"} setShowModal={setShowModal} performAction={() => deletePost()} />}
+            {showModal && <Modal text={"Delete the post?"} setShowModal={setShowModal} performAction={() => handleDeletePost()} />}
         </div>
     );
 };

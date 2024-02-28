@@ -2,8 +2,6 @@ import "../Comment.scss";
 
 import { IComment } from "../../../../models/IComment";
 
-import {axiosCustom} from "../../../../axiosSettings";
-
 import { useEffect, useRef, useState } from "react";
 import { IUser } from "../../../../models/IUser";
 
@@ -11,20 +9,24 @@ import { PulseLoader } from "react-spinners";
 import ReactMarkdown from "react-markdown";
 import { formatRelativeTime } from "../../../../utils/relativeTimeFormatter";
 import { Modal } from "../../../../components/modal/Modal";
+import { useDeleteCommentMutation, useUpdateCommentMutation } from "../../../../redux/comments/commentsApi";
 
 
 
-interface ICommentProps
-{
+interface ICommentProps {
     comment: IComment,
     setFullPostCommentsCount: React.Dispatch<React.SetStateAction<number>>,
     setParentCommentsCount: React.Dispatch<React.SetStateAction<number>>,
     userData: IUser | null,
 }
 
-export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCount, userData: userInfo }: ICommentProps) =>
-{
+export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCount, userData: userInfo }: ICommentProps) => {
+    const user = comment.user as IUser;
+
     const moddedDate = formatRelativeTime(new Date(comment.createdAt));
+
+    const [updateComment] = useUpdateCommentMutation();
+    const [deleteComment] = useDeleteCommentMutation();
 
     const [showComment, setShowComment] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -39,16 +41,13 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
 
 
 
-    useEffect(() =>
-    {
-        if (commentTextareaRef.current)
-        { commentTextareaRef.current.style.height = 'inherit'; commentTextareaRef.current.style.height = `${commentTextareaRef.current.scrollHeight}px`; }
+    useEffect(() => {
+        if (commentTextareaRef.current) { commentTextareaRef.current.style.height = 'inherit'; commentTextareaRef.current.style.height = `${commentTextareaRef.current.scrollHeight}px`; }
     }, [isEditingComment]);
 
 
 
-    const resizeTextarea = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    {
+    const handleResizeTextarea = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         e.target.style.height = 'inherit';
         e.target.style.height = `${e.target.scrollHeight}px`;
 
@@ -66,16 +65,17 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
 
 
     // Comments ----------------------------------------------------------------------
-    const deleteReply = async () =>
-    {
-        const data =
+    const handleDeleteReply = async () => {
+        const body =
         {
             _id: comment._id,
             postId: comment.postId,
             commentParentId: comment.commentParentId,
         };
 
-        try { await axiosCustom.delete(`/comments/${comment._id}`, { data }); }
+        try {
+            await deleteComment({ commentId: comment._id, body }).unwrap();
+        }
         catch (error) { console.error("Could not delete the reply", error); }
 
         setFullPostCommentsCount(prev => prev - 1);
@@ -86,9 +86,8 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
 
 
 
-    const editComment = async () =>
-    {
-        if (!commentTextareaRef.current || !commentTextareaRef.current.value) return; 
+    const handleEditReply = async () => {
+        if (!commentTextareaRef.current || !commentTextareaRef.current.value) return;
 
         const editedCommentText = commentTextareaRef.current.value;
 
@@ -97,7 +96,7 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
 
         setIsLoadingEditing(true);
 
-        try { await axiosCustom.patch(`/comments/${comment._id}`, { text: editedCommentText }); }
+        try { await updateComment({ commentId: comment._id, body: { text: editedCommentText } }).unwrap(); }
         catch (error) { console.error("Could not edit the comment", error); }
 
         setCurrentCommentText(editedCommentText);
@@ -117,7 +116,7 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
     return (
         <div className="comment">
 
-            {userInfo?._id === comment.user._id &&
+            {userInfo?._id === user._id &&
                 <div className="comment__options">
                     <button onClick={() => setShowModal(true)}>X</button>
                     <button onClick={() => { setEditingcomment(!isEditingComment); }}>{isEditingComment ? "Cancel editing" : "edit"}</button>
@@ -125,9 +124,9 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
             }
 
             <div className="comment__user-wrapper">
-                <img src={process.env.REACT_APP_BACKEND + comment.user.userAvatar} alt="User's avatar" />
+                <img src={process.env.REACT_APP_BACKEND + user.userAvatar} alt="User's avatar" />
                 <div className="comment__user">
-                    <p>{comment.user.name}</p>
+                    <p>{user.name}</p>
                     <p>{moddedDate} {isCommentEdited && "(edited)"}</p>
                 </div>
             </div>
@@ -135,17 +134,17 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
             {isEditingComment
                 ? <div className="comment__edit">
                     {commentErrorMsg && <p className="comment__error-msg">{commentErrorMsg}</p>}
-                    <textarea ref={commentTextareaRef} defaultValue={currentCommentText} rows={1} onChange={(e) => resizeTextarea(e)} />
+                    <textarea ref={commentTextareaRef} defaultValue={currentCommentText} rows={1} onChange={(e) => handleResizeTextarea(e)} />
 
                     {!isLoadingEditing
-                        ? <button onClick={editComment}>confirm</button>
+                        ? <button onClick={handleEditReply}>confirm</button>
                         : <button><PulseLoader color={"#c52b2b"} size={7} /></button>
                     }
                 </div>
                 : <ReactMarkdown className="comment__text" children={currentCommentText} />
             }
 
-            {showModal && <Modal text={"Delete the reply?"} setShowModal={setShowModal} performAction={() => deleteReply()} />}
+            {showModal && <Modal text={"Delete the reply?"} setShowModal={setShowModal} performAction={() => handleDeleteReply()} />}
         </div >
     );
-};;
+};
