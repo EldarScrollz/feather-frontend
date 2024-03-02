@@ -8,11 +8,32 @@ const postsApi = featherApi.injectEndpoints({
     endpoints: builder => ({
         getPosts: builder.query<IPost[], void>({
             query: () => '/posts',
-            providesTags: ["Post"]
+            providesTags: (result) => result
+                ? [
+                    ...result.map(({ _id }) => ({ type: 'Post' as const, id: `AllPosts${_id}` })),
+                    { type: 'Post', id: 'AllPosts' },
+                ]
+                : [{ type: 'Post', id: 'AllPosts' }],
         }),
         getPost: builder.query<IPost, string | undefined>({
             query: (postId) => `/posts/${postId}`,
-            providesTags: ["Post"]
+            providesTags: (result, error, postId) => result ? [{ type: 'Post', id: postId },] : ["Post"],
+            async onQueryStarted(postId, { dispatch, queryFulfilled }) {
+                const patchResult = dispatch(
+                    postsApi.util.updateQueryData('getPosts', undefined, (draft) => {
+                        const foundPost = draft.find(post => post._id === postId);
+                        foundPost?.viewsCount && foundPost.viewsCount++;
+                        return draft;
+                    })
+                );
+
+                try {
+                    await queryFulfilled;
+                } catch (error) {
+                    console.error("getPost onQueryStarted error!", error);
+                    patchResult.undo();
+                }
+            },
         }),
 
         createPost: builder.mutation<IPost, Partial<IPost>>({
@@ -21,7 +42,7 @@ const postsApi = featherApi.injectEndpoints({
                 method: 'POST',
                 body: post
             }),
-            invalidatesTags: ["Post"]
+            invalidatesTags: [{ type: 'Post', id: 'AllPosts' }],
         }),
 
         updatePost: builder.mutation<IPost, { id: string, oldPostImgQuery?: string | void, body: Partial<IPost>; }>({
@@ -31,7 +52,7 @@ const postsApi = featherApi.injectEndpoints({
                 body: body,
                 params: { oldPostImgQuery }
             }),
-            invalidatesTags: ["Post"]
+            invalidatesTags: (result, error, args) => [{ type: 'Post', id: `AllPosts${args.id}` }],
         }),
 
         deletePost: builder.mutation<string, string>({
@@ -39,7 +60,7 @@ const postsApi = featherApi.injectEndpoints({
                 url: `/posts/${postId}`,
                 method: 'DELETE',
             }),
-            invalidatesTags: ["Post"]
+            invalidatesTags: [{ type: 'Post', id: 'AllPosts' }],
         }),
 
         getTopTags: builder.query<string[], void>({

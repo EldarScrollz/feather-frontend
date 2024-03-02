@@ -1,22 +1,30 @@
 import "./TopTags.scss";
 
 import { Link } from "react-router-dom";
+import { PulseLoader } from "react-spinners";
 
 import { useGetTopTagsQuery } from "../../../redux/posts/postsApi";
 
-import { LoadingScreen } from "../../../components/loadingScreen/LoadingScreen";
-import { SquareLoader } from "react-spinners";
+
 
 export const TopTags = () => {
     const { data: topTags, error: topTagsError, isLoading: isLoadingTopTags } = useGetTopTagsQuery();
 
+
+
     if (topTagsError) return <div className="top-tags"><p className="error">Tags error, please try again later.</p></div>;
-    if (!topTags || topTags.length <= 0) return <></>;
+
     if (isLoadingTopTags) return (
         <div className="top-tags" style={{ display: "flex", justifyContent: "center" }}>
-            <SquareLoader color={"#c52b2b"} size={80} />
+            <PulseLoader color={"#c4c7ad"} size={7} />
         </div>
     );
+
+    if (!topTags || topTags.length <= 0) return <></>;
+
+
+
+
 
     return (
         <div className="top-tags">

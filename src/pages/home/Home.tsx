@@ -28,8 +28,8 @@ export const Home = () => {
 
 
 
-    if (isLoadingPosts) return <LoadingScreen />;
     if (postsError) { return <p className="error">Could not get the posts, please try again later.</p>; }
+    if (isLoadingPosts) return <LoadingScreen />;
 
 
 

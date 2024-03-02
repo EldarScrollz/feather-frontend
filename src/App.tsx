@@ -22,14 +22,13 @@ function App() {
 
   useEffect(() => {
     (async () => {
-      try {
-        data && await dispatch(setUserData(data));
-      } catch (error) {
-        console.error("Could not get the signed in user's data!", error);
-      }
+      try { data && await dispatch(setUserData(data)); } //todo: add status to userData so we can differentiate when it's loading.
+      catch (error) { console.error("Could not get the signed in user's data!", error); }
     })();
   }, [dispatch, data]); //todo: make the loading logic for useGetSignedInUserQuery (data).
 
+
+  
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route path="/" element={<RootLayout />}>

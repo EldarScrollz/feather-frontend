@@ -1,13 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import { postsReducer } from './posts/postsSlice';
 import { authReducer } from './auth/authSlice';
 
 import { featherApi } from './api/featherApi';
 
 const store = configureStore({
     reducer: {
-        allPosts: postsReducer,
         auth: authReducer,
         [featherApi.reducerPath]: featherApi.reducer
     },

@@ -30,7 +30,6 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
 
     const userData = useAppSelector((state) => state.auth.userData);
 
-
     const { data: replies, error: repliesError, isLoading: isLoadingReplies } = useGetRepliesQuery(comment._id);
 
     const [createComment] = useCreateCommentMutation();
@@ -52,10 +51,12 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
     const [commentErrorMsg, setCommentErrorMsg] = useState("");
     const [isCommentEdited, setIsCommentEdited] = useState(comment.isEdited);
 
-    const [isReplyingLoading, setIsReplyingLoading] = useState(false);
+    const [showReplySpinner, setShowReplySpinner] = useState(true);
     const [isReplying, setIsReplying] = useState(false);
-    // const [commentReplies, setCommentReplies] = useState<IComment[]>([]);
     const [commentRepliesCount, setCommentRepliesCount] = useState(comment.repliesCount);
+    const repliesButtonText = repliesError
+        ? "Replies error, please try again later"
+        : showReplies ? "hide replies" : `replies: ${commentRepliesCount}`;
 
 
 
@@ -65,7 +66,9 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
             commentTextareaRef.current.style.height = 'inherit';
             commentTextareaRef.current.style.height = `${commentTextareaRef.current.scrollHeight}px`;
         }
-    }, [isEditingComment]);
+
+        if (!isLoadingReplies) setShowReplySpinner(false);
+    }, [isEditingComment, isLoadingReplies]);
 
 
 
@@ -84,13 +87,6 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
 
         setCommentErrorMsg("");
     };
-
-
-
-    // if (!replies) return <><h1>todo: delete this</h1></>;
-
-    // todo: How should we handle this. Supply both comments and replies as props from fullPost or -
-    // - handle everything here (make loading spinner for "replies count" button when loading replies)?
 
 
 
@@ -158,7 +154,7 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
         if (replyText.length > 1000) return;
         if (!replyText) return;
 
-        setIsReplyingLoading(true);
+        setShowReplySpinner(true);
 
         const body =
         {
@@ -183,7 +179,7 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
         setIsReplying(false);
         setShowReplies(true);
 
-        setIsReplyingLoading(false);
+        setShowReplySpinner(false);
     };
     //--------------------------------------------------------------------------------
 
@@ -226,7 +222,11 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
 
             <div className="comment__reply">
                 <div className="comment__reply-options">
-                    {(commentRepliesCount > 0) && <button onClick={() => setShowReplies(!showReplies)}>{showReplies ? "hide replies" : `replies: ${commentRepliesCount}`}</button>}
+                    {
+                        showReplySpinner
+                            ? <button><PulseLoader color={"#c52b2b"} size={7} /></button>
+                            : (commentRepliesCount > 0) && <button onClick={() => setShowReplies(!showReplies)}>{repliesButtonText}</button>
+                    }
                     <button className="comment__reply-button" onClick={() => setIsReplying(!isReplying)}>{isReplying ? "cancel" : "reply"}</button>
                 </div>
                 {isReplying &&
@@ -234,9 +234,9 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
                         {commentErrorMsg && <p className="comment__error-msg">{commentErrorMsg}</p>}
                         <textarea placeholder="Add a reply..." ref={replyTextareaRef} rows={1} onChange={(e) => resizeTextarea(e)} />
 
-                        {!isReplyingLoading
-                            ? <button className="comment__reply-confirm" onClick={() => { replyToComment(); }}>confirm</button>
-                            : <button className="comment__reply-confirm"><PulseLoader color={"#c52b2b"} size={7} /></button>
+                        {showReplySpinner
+                            ? <button className="comment__reply-confirm"><PulseLoader color={"#c52b2b"} size={7} /></button>
+                            : <button className="comment__reply-confirm" onClick={() => { replyToComment(); }}>confirm</button>
                         }
                     </>
                 }

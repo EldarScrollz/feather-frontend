@@ -4,7 +4,6 @@ import logo from "./featherLogo.svg";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { fetchPosts } from "../../redux/posts/postsSlice";
 import { isCurrentUserSignedIn, signOut } from "../../redux/auth/authSlice";
 
 import { useEffect, useRef, useState } from "react";
@@ -56,12 +55,12 @@ export const Navbar = () => {
             <div className="navbar-wrapper">
                 <div className="navbar" ref={navbarRef}>
                     <div className="navbar__logo">
-                        <Link to="/" onClick={() => dispatch(fetchPosts())}> <img src={logo} alt="Logo" /></Link>
+                        <Link to="/"> <img src={logo} alt="Logo" /></Link>
                     </div>
 
                     <nav className={showHamMenu ? "navbar__options-wrapper navbar__options-wrapper--active" : "navbar__options-wrapper"} >
                         <div className="navbar__options">
-                            <Link to="/" onClick={() => { setShowHamMenu(false); dispatch(fetchPosts()); }}>HOME</Link>
+                            <Link to="/" onClick={() => { setShowHamMenu(false); }}>HOME</Link>
                             {isUserSignedIn ?
                                 <>
                                     <Link to="/create-post" onClick={() => setShowHamMenu(false)}>CREATE POST</Link>

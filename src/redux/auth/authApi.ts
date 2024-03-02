@@ -1,4 +1,5 @@
 import { IUser } from "../../models/IUser";
+
 import { featherApi } from "../api/featherApi";
 
 const authApi = featherApi.injectEndpoints({
@@ -27,6 +28,23 @@ const authApi = featherApi.injectEndpoints({
                 method: 'POST',
             })
         }),
+
+        editUser: builder.mutation<IUser, { oldAvatar: string, body: Partial<IUser>; }>({
+            query: ({ oldAvatar, body }) => ({
+                url: '/auth/editProfile',
+                method: 'PATCH',
+                body: body,
+                params: { oldAvatar }
+            }),
+            invalidatesTags: [{ type: 'Post', id: 'AllPosts' }]
+        }),
+
+        deleteUser: builder.mutation<string, { userId: string, password: string; }>({
+            query: ({ userId, password }) => ({
+                url: `/auth/deleteProfile/${userId}/${password}`,
+                method: 'DELETE',
+            })
+        }),
     })
 });
 
@@ -35,5 +53,8 @@ export const {
 
     useSignUpUserMutation,
     useSignInUserMutation,
-    useSignOutUserMutation
+    useSignOutUserMutation,
+
+    useEditUserMutation,
+    useDeleteUserMutation,
 } = authApi;

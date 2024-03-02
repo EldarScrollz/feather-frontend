@@ -42,12 +42,15 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
 
 
     useEffect(() => {
-        if (commentTextareaRef.current) { commentTextareaRef.current.style.height = 'inherit'; commentTextareaRef.current.style.height = `${commentTextareaRef.current.scrollHeight}px`; }
+        if (commentTextareaRef.current) {
+            commentTextareaRef.current.style.height = 'inherit';
+            commentTextareaRef.current.style.height = `${commentTextareaRef.current.scrollHeight}px`;
+        }
     }, [isEditingComment]);
 
 
 
-    const handleResizeTextarea = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const resizeTextarea = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         e.target.style.height = 'inherit';
         e.target.style.height = `${e.target.scrollHeight}px`;
 
@@ -134,7 +137,7 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
             {isEditingComment
                 ? <div className="comment__edit">
                     {commentErrorMsg && <p className="comment__error-msg">{commentErrorMsg}</p>}
-                    <textarea ref={commentTextareaRef} defaultValue={currentCommentText} rows={1} onChange={(e) => handleResizeTextarea(e)} />
+                    <textarea ref={commentTextareaRef} defaultValue={currentCommentText} rows={1} onChange={(e) => resizeTextarea(e)} />
 
                     {!isLoadingEditing
                         ? <button onClick={handleEditReply}>confirm</button>

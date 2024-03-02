@@ -45,26 +45,6 @@ export const CreatePost = () => {
 
 
 
-    useEffect(() => {
-        if (idFromLink) {
-            if (post) {
-                setText(post.text);
-                setPostImgPath(post.postImg);
-                setPostImgUrl(process.env.REACT_APP_BACKEND + post.postImg);
-
-                // React hook form default values.
-                reset({
-                    title: post?.title,
-                    tags: post?.tags.toString().replace(/,/g, " ")
-                });
-            }
-        }
-
-        if (!isLoadingPost) setIsCreatePostLoading(false);
-    }, [post]);
-
-
-
     // Form validation -----------------------------------------------------------------------------------------------
     const schema = yup.object().shape(
         {
@@ -88,6 +68,26 @@ export const CreatePost = () => {
             }, [post])
         });
     //----------------------------------------------------------------------------------------------------------------
+
+
+
+    useEffect(() => {
+        if (idFromLink) {
+            if (post) {
+                setText(post.text);
+                setPostImgPath(post.postImg);
+                setPostImgUrl(process.env.REACT_APP_BACKEND + post.postImg);
+
+                // React hook form default values.
+                reset({
+                    title: post?.title,
+                    tags: post?.tags.toString().replace(/,/g, " ")
+                });
+            }
+        }
+
+        if (!isLoadingPost) setIsCreatePostLoading(false);
+    }, [idFromLink, post, isLoadingPost, reset]);
 
 
 

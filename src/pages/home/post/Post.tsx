@@ -1,21 +1,21 @@
 import "./Post.scss";
-import deleteIcon from "./deleteIcon.svg"
-import editIcon from "./editIcon.svg"
+import deleteIcon from "./deleteIcon.svg";
+import editIcon from "./editIcon.svg";
 import viewsIcon from "./viewsIcon.svg";
 import commentsIcon from "./commentsIcon.svg";
-import heartsIcon from "./heartsIcon.svg"
+import heartsIcon from "./heartsIcon.svg";
 
 import { IPost } from "../../../models/IPost";
 
-import {axiosCustom} from "../../../axiosSettings";
+import { useAppSelector } from "../../../redux/hooks";
+import { useDeletePostMutation } from "../../../redux/posts/postsApi";
+import { useCreateHeartMutation, useDeleteHeartMutation, useHasUserHeartedPostQuery } from "../../../redux/hearts/heartsApi";
 
-import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { useEffect, useState } from "react";
-
 import { Link, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
-import { updateHeartsCount } from "../../../redux/posts/postsSlice";
 import { PulseLoader } from "react-spinners";
+
 import { formatRelativeTime } from "../../../utils/relativeTimeFormatter";
 import { Modal } from "../../../components/modal/Modal";
 
@@ -23,49 +23,43 @@ import { Modal } from "../../../components/modal/Modal";
 
 interface IPostProps { post: IPost; }
 
-export const Post = ({ post }: IPostProps) =>
-{
-    const dispatch = useAppDispatch();
+export const Post = ({ post }: IPostProps) => {
     const navigate = useNavigate();
+    const moddedDate = formatRelativeTime(new Date(post.createdAt));
+
     const userData = useAppSelector((state) => state.auth.userData);
 
-    const moddedDate = formatRelativeTime(new Date(post.createdAt));
+    const { data: hasUserHearted, isLoading: isLoadingHasUserHearted } = useHasUserHeartedPostQuery(
+        { postId: post._id, userId: userData?._id },
+        { skip: post._id === undefined || userData?._id === undefined, });
+
+    const [deletePost] = useDeletePostMutation();
+    const [createHeart] = useCreateHeartMutation();
+    const [deleteHeart] = useDeleteHeartMutation();
 
     const [showPost, setShowPost] = useState(true);
     const [showModal, setShowModal] = useState(false);
 
-    const [isHeartLoading, setIsHeartLoading] = useState(true);
-    const [isUserInHearts, setIsUserInHearts] = useState(false);
+    const [isHeartSpinner, setIsHeartSpinner] = useState(true);
+    // const [isUserInHearts, setIsUserInHearts] = useState(false);
 
     const formatViewsCount = Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.viewsCount);
     const formatCommentsCount = Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.commentsCount);
-    const [formatHeartsCount, setFormatHeartsCount] = useState(Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.heartsCount));
-
-
-    useEffect(() =>
-    {
-        if (userData?._id)
-        {
-            // Check if user already "hearted" this post
-            axiosCustom.get(`hearts/hasUserHeart/${post._id}/${userData?._id}`)
-                .then((res) => 
-                {
-                    setIsUserInHearts(res.data);
-                })
-                .catch((error) => console.warn("Could not get hasUserHeart", error))
-                .finally(() => setIsHeartLoading(false));
-        }
-        else { setIsHeartLoading(false); }
-    }, [post._id, userData?._id]);
+    const [formatHeartsCount, setFormatHeartsCount] = useState("");
 
 
 
-    const deletePost = async () =>
-    {
-        try 
-        {
-            await axiosCustom.delete(`/posts/${post._id}`);
+    useEffect(() => {
+        // setIsUserInHearts(heartData ? true : false);
+        if (!formatHeartsCount) { setFormatHeartsCount(Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.heartsCount)); }
+        if (!isLoadingHasUserHearted) setIsHeartSpinner(false);
+    }, [formatHeartsCount, post.heartsCount, isLoadingHasUserHearted]);
 
+
+
+    const handleDeletePost = async () => {
+        try {
+            await deletePost(post._id).unwrap();
             setShowPost(false);
         }
         catch (error) { console.error("Could not delete the post", error); }
@@ -73,42 +67,30 @@ export const Post = ({ post }: IPostProps) =>
 
 
 
-    const addRemoveHeart = async () =>
-    {
-        setIsHeartLoading(true);
+    const addRemoveHeart = async () => {
+        setIsHeartSpinner(true);
 
-        try 
-        {
-            if (!isUserInHearts)
-            {
-                await axiosCustom.post(`/hearts/${post._id}`);
+        try {
+            if (!hasUserHearted) {
+                await createHeart(post._id).unwrap();
 
-                // Increase heartsCount (redux) ----------------------------------
-                const payload = { _id: post._id, count: (post.heartsCount + 1) };
-                dispatch(updateHeartsCount(payload));
-                //----------------------------------------------------------------
+                setFormatHeartsCount((prev) => Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }
+                ).format((Number(prev) + 1))); // todo
 
-                setFormatHeartsCount(Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.heartsCount + 1));
-
-                setIsUserInHearts(true);
+                // setIsUserInHearts(true);
             }
-            else if (isUserInHearts)
-            {
-                await axiosCustom.delete(`/hearts?postId=${post._id}&userId=${userData?._id}`);
+            else if (hasUserHearted) {
+                userData && await deleteHeart({ postId: post._id, userId: userData?._id }).unwrap();
 
-                // Decrease heartsCount (redux) ----------------------------------
-                const payload = { _id: post._id, count: (post.heartsCount - 1) };
-                dispatch(updateHeartsCount(payload));
-                //----------------------------------------------------------------
+                setFormatHeartsCount((prev) => Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }
+                ).format((Number(prev) - 1))); //todo
 
-                setFormatHeartsCount(Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.heartsCount - 1));
-
-                setIsUserInHearts(false);
+                // setIsUserInHearts(false);
             }
         }
         catch (error) { console.error("Could not add/remove the heart!", error); }
 
-        setIsHeartLoading(false);
+        setIsHeartSpinner(false);
     };
 
 
@@ -159,15 +141,15 @@ export const Post = ({ post }: IPostProps) =>
                         <div className="post__footer-comments"><img src={commentsIcon} alt="comments icon" /> <p>{formatCommentsCount}</p></div>
                     </div>
 
-                    {!isHeartLoading
-                        ? <button className="post__footer-hearts" style={{ backgroundColor: isUserInHearts ? "#113b1f" : "" }} onClick={addRemoveHeart}>{formatHeartsCount} <img src={heartsIcon} alt="hearts icon" /></button>
+                    {!isHeartSpinner
+                        ? <button className="post__footer-hearts" style={{ backgroundColor: hasUserHearted ? "#113b1f" : "" }} onClick={addRemoveHeart}>{formatHeartsCount} <img src={heartsIcon} alt="hearts icon" /></button>
                         : <button className="post__footer-hearts"><PulseLoader color={"#c2cad1"} size={5} /></button>
                     }
                 </div>
 
             </div>
 
-            {showModal && <Modal text={"Delete the post?"} setShowModal={setShowModal} performAction={deletePost} />}
+            {showModal && <Modal text={"Delete the post?"} setShowModal={setShowModal} performAction={handleDeletePost} />}
         </>
     );
 };

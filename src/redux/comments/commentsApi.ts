@@ -13,6 +13,7 @@ const commentsApi = featherApi.injectEndpoints({
             query: (postId) => `/comments/${postId}`,
             providesTags: ["Comment"]
         }),
+        
         getReplies: builder.query<IComment[], string>({
             query: (commentId) => `/comments/replies/${commentId}`,
             providesTags: ["Comment"]

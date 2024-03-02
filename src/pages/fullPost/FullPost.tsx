@@ -15,9 +15,8 @@ import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { PulseLoader } from "react-spinners";
 
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { signOut } from "../../redux/auth/authSlice";
-import { useDeletePostMutation, useGetPostQuery } from "../../redux/posts/postsApi";
+import { useAppSelector } from "../../redux/hooks";
+import { useDeletePostMutation, useGetPostQuery, useUpdatePostMutation } from "../../redux/posts/postsApi";
 import { useCreateHeartMutation, useDeleteHeartMutation, useHasUserHeartedPostQuery } from "../../redux/hearts/heartsApi";
 
 import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
@@ -33,35 +32,33 @@ export const FullPost = () => {
     const navigate = useNavigate();
 
     const userData = useAppSelector((state) => state.auth.userData);
-    const dispatch = useAppDispatch();
 
+    //=========================================================
+    // API Feather.
+    //=========================================================
     // Get post.
-    const { data: post, error: postError, isLoading: isLoadingPost } = useGetPostQuery(postId);
+    const { data: post, error: postError, isLoading: isLoadingPost } = useGetPostQuery(postId, { refetchOnMountOrArgChange: true });
     const [deletePost] = useDeletePostMutation();
+    const [updatePost] = useUpdatePostMutation();
 
-    // Has user hearted post.
-    const { data: heartData, error: heartError, isLoading: isLoadingHeart } = useHasUserHeartedPostQuery(
+    const { data: hasUserHearted, isLoading: isLoadingHasUserHearted } = useHasUserHeartedPostQuery(
         { postId, userId: userData?._id },
         { skip: postId === undefined || userData?._id === undefined });
-    // Create heart.
+
     const [createHeart] = useCreateHeartMutation();
-    // Delete heart.
     const [deleteHeart] = useDeleteHeartMutation();
 
-    // Get comments by post id.
     const { data: comments, isLoading: isLoadingComments } = useGetCommentsByPostIdQuery(postId,
         { skip: postId === undefined });
 
-    // Create comment.
     const [createComment] = useCreateCommentMutation();
+    //=========================================================
 
     const [isHeartLoading, setIsHeartLoading] = useState(false);
-    const [heartsCount, setHeartsCount] = useState(0);
-    const [isUserInHearts, setIsUserInHearts] = useState(false);
+    const [heartsCount, setHeartsCount] = useState(-1);
+    // const [isUserInHearts, setIsUserInHearts] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
-
-    const [isFullPostLoading, setIsFullPostloading] = useState(true);
     const [isCommentLoading, setIsCommentLoading] = useState(false);
 
     const moddedDate = post && formatRelativeTime(new Date(post.createdAt));
@@ -74,22 +71,14 @@ export const FullPost = () => {
 
 
     useEffect(() => {
-        (async () => {
-            try {
-                if (post) {
-                    setHeartsCount(post.heartsCount);
-                    setFullPostCommentsCount(post.commentsCount);
-                }
+        if (post) {
+            /* if (heartsCount < 0) */ setHeartsCount(post.heartsCount);
+            setFullPostCommentsCount(post.commentsCount);
+        }
 
-                // Check if user already "hearted" this post.
-                setIsUserInHearts(heartData ? true : false);
-            } catch (error: any) { // todo: change error type.
-                console.error("Could not get the all the fullpost data", error);
-                if (error.response.status === 403) dispatch(signOut());
-            }
-            finally { setIsFullPostloading(false); }
-        })();
-    }, [userData, postId, post, heartData, dispatch]);
+        // Check if user already "hearted" this post.
+        // setIsUserInHearts(isUserHearted ? true : false);
+    }, [post]);
 
 
 
@@ -97,22 +86,21 @@ export const FullPost = () => {
 
 
 
-    const addRemoveHeart = async () => {
+    const handleAddRemoveHeart = async () => {
         setIsHeartLoading(true);
 
         try {
-            if (!isUserInHearts) {
-                post?._id && await createHeart(post?._id).unwrap();
+            if (!hasUserHearted) {
+                await createHeart(postId).unwrap();
 
-                setHeartsCount(prev => prev + 1);
-
-                setIsUserInHearts(true);
+                setHeartsCount(prev => prev + 1); //todo
+                // setIsUserInHearts(true);
             }
-            else if (isUserInHearts) {
-                (post?._id && userData?._id) && await deleteHeart({ postId: post?._id, userId: userData?._id }).unwrap();
+            else if (hasUserHearted) {
+                userData?._id && await deleteHeart({ postId: postId, userId: userData?._id }).unwrap();
 
-                setHeartsCount(prev => prev - 1);
-                setIsUserInHearts(false);
+                setHeartsCount(prev => prev - 1);//todo
+                // setIsUserInHearts(false);
             }
         }
         catch (error) { console.error("Could not add/remove the heart!", error); }
@@ -124,7 +112,7 @@ export const FullPost = () => {
 
     const handleDeletePost = async () => {
         try {
-            post?._id && await deletePost(post?._id).unwrap();
+            await deletePost(postId).unwrap();
             navigate("/");
         }
         catch (error) {
@@ -147,7 +135,7 @@ export const FullPost = () => {
 
 
 
-    const handelCreateComment = async () => {
+    const handleCreateComment = async () => {
         if (createdCommentErrorMsg.length > 0 || !createdCommentText || !userData) return;
 
         setIsCommentLoading(true);
@@ -179,7 +167,7 @@ export const FullPost = () => {
     // todo: "!post" is probably not good.
     if (postError) { return <p className="error">Could not get the post, please try again later.</p>; }
 
-    if (isLoadingPost || isLoadingComments || isFullPostLoading) return <LoadingScreen />;
+    if (isLoadingPost || isLoadingHasUserHearted || isLoadingComments) return <LoadingScreen />;
 
     if (!post) { return <p className="error">Could not get the post, please try again later.</p>; }
     //------------------------------------------------------------------------------------------------------------------------------
@@ -227,7 +215,7 @@ export const FullPost = () => {
                     </div>
 
                     {!isHeartLoading
-                        ? <button className="post__footer-hearts" style={{ backgroundColor: isUserInHearts ? "#113b1f" : "" }} onClick={addRemoveHeart}>{heartsCount} <img src={heartsIcon} alt="hearts icon" /></button>
+                        ? <button className="post__footer-hearts" style={{ backgroundColor: hasUserHearted ? "#113b1f" : "" }} onClick={handleAddRemoveHeart}>{heartsCount} <img src={heartsIcon} alt="hearts icon" /></button>
                         : <button className="post__footer-hearts"><PulseLoader color={"#c2cad1"} size={5} /></button>
                     }
                 </div>
@@ -246,7 +234,7 @@ export const FullPost = () => {
                             <button className="full-post__clear-comment-text" onClick={() => { textareaRef.current!.value = ""; setCreatedCommentText(""); textareaRef.current && (textareaRef.current.style.height = "29px"); }}>clear</button>
 
                             {!isCommentLoading
-                                ? <button className="full-post__create-comment" onClick={handelCreateComment}>comment</button>
+                                ? <button className="full-post__create-comment" onClick={handleCreateComment}>comment</button>
                                 : <button><PulseLoader color={"#c52b2b"} size={7} /></button>
                             }
                         </div>

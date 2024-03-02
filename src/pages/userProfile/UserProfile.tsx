@@ -1,8 +1,6 @@
 import "./UserProfile.scss";
 import "../../utils/imgCropper.scss";
 
-import { axiosCustom } from "../../axiosSettings";
-
 import { uploadImage } from "../../utils/uploadImage";
 import { returnCroppedImage } from "../../utils/returnCroppedImage";
 
@@ -13,8 +11,8 @@ import { useNavigate } from "react-router-dom";
 import { PulseLoader } from "react-spinners";
 
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { signOut } from "../../redux/auth/authSlice";
-import { fetchPosts } from "../../redux/posts/postsSlice";
+import { setUserData, signOut } from "../../redux/auth/authSlice";
+import { useDeleteUserMutation, useEditUserMutation } from "../../redux/auth/authApi";
 
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -22,7 +20,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Modal } from "../../components/modal/Modal";
 import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
 
-
+//todo: delete all unnecessary dispatches everywhere
 
 interface IProfileData {
     email: string,
@@ -38,6 +36,8 @@ export const UserProfile = () => {
 
     const dispatch = useAppDispatch();
     const userData = useAppSelector((state) => state.auth.userData);
+    const [deleteUser] = useDeleteUserMutation();
+    const [editUser] = useEditUserMutation();
 
     const [isSubmitLoading, setIsSubmitLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -106,7 +106,7 @@ export const UserProfile = () => {
     //-----------------------------------------------------------------------------------------------------------------------
 
 
-    
+
     useEffect(() => {
         if (userData?.userAvatar && userData?.userAvatar !== process.env.REACT_APP_NOIMG as string) {
             setAvatarPath(userData?.userAvatar);
@@ -122,9 +122,13 @@ export const UserProfile = () => {
 
 
 
+    if (!userData) return <LoadingScreen />;
+
+
+
     const handleAccountDelete = async () => {
         try {
-            await axiosCustom.delete(`/auth/deleteProfile/${userData?._id}/${deleteUserPassword}`);
+            await deleteUser({ userId: userData?._id, password: deleteUserPassword }).unwrap();
             dispatch(signOut());
             navigate("/");
         }
@@ -146,28 +150,30 @@ export const UserProfile = () => {
             const userAvatarToSet = croppedImgPath ? croppedImgPath : avatarPath;
 
             if (onSubmitValues.isChangePassword) {
-                await axiosCustom.patch(`auth/editProfile${oldAvatarQuery}`,
-                    {
-                        email: onSubmitValues.email,
-                        name: onSubmitValues.name,
-                        userAvatar: userAvatarToSet,
-                        isChangePassword: onSubmitValues.isChangePassword,
-                        currentPassword: onSubmitValues.currentPassword,
-                        newPassword: onSubmitValues.newPassword,
-                        confirmNewPassword: onSubmitValues.confirmNewPassword,
-                    });
+                const bodyWithPassword = {
+                    email: onSubmitValues.email,
+                    name: onSubmitValues.name,
+                    userAvatar: userAvatarToSet,
+                    isChangePassword: onSubmitValues.isChangePassword,
+                    currentPassword: onSubmitValues.currentPassword,
+                    newPassword: onSubmitValues.newPassword,
+                    confirmNewPassword: onSubmitValues.confirmNewPassword,
+                };
+
+                const response = await editUser({ oldAvatar: oldAvatarQuery, body: bodyWithPassword }).unwrap();
+                dispatch(setUserData(response));
             }
             else {
-                await axiosCustom.patch(`auth/editProfile${oldAvatarQuery}`,
-                    {
-                        email: onSubmitValues.email,
-                        name: onSubmitValues.name,
-                        userAvatar: userAvatarToSet,
-                        isChangePassword: onSubmitValues.isChangePassword,
-                    });
-            }
+                const body = {
+                    email: onSubmitValues.email,
+                    name: onSubmitValues.name,
+                    userAvatar: userAvatarToSet,
+                    isChangePassword: onSubmitValues.isChangePassword,
+                };
 
-            dispatch(fetchPosts());
+                const response = await editUser({ oldAvatar: oldAvatarQuery, body }).unwrap();
+                dispatch(setUserData(response));
+            }
 
             navigate("/");
         }
@@ -175,10 +181,6 @@ export const UserProfile = () => {
 
         setIsSubmitLoading(false);
     };
-
-
-
-    if (!userData) return <LoadingScreen />;
 
 
 
