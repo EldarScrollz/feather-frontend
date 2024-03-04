@@ -16,14 +16,14 @@ import ReactMarkdown from "react-markdown";
 import { PulseLoader } from "react-spinners";
 
 import { useAppSelector } from "../../redux/hooks";
-import { useDeletePostMutation, useGetPostQuery, useUpdatePostMutation } from "../../redux/posts/postsApi";
+import { useDeletePostMutation, useGetPostQuery } from "../../redux/posts/postsApi";
 import { useCreateHeartMutation, useDeleteHeartMutation, useHasUserHeartedPostQuery } from "../../redux/hearts/heartsApi";
+import { useCreateCommentMutation, useGetCommentsByPostIdQuery } from "../../redux/comments/commentsApi";
 
 import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
 import { Modal } from "../../components/modal/Modal";
 
 import { formatRelativeTime } from "../../utils/relativeTimeFormatter";
-import { useCreateCommentMutation, useGetCommentsByPostIdQuery } from "../../redux/comments/commentsApi";
 
 
 
@@ -37,11 +37,10 @@ export const FullPost = () => {
     // API Feather.
     //=========================================================
     // Get post.
-    const { data: post, error: postError, isLoading: isLoadingPost } = useGetPostQuery(postId, { refetchOnMountOrArgChange: true });
+    const { data: post, error: postError, isLoading: isLoadingPost, isFetching: isFetchingPost } = useGetPostQuery(postId, { refetchOnMountOrArgChange: true });
     const [deletePost] = useDeletePostMutation();
-    const [updatePost] = useUpdatePostMutation();
 
-    const { data: hasUserHearted, isLoading: isLoadingHasUserHearted } = useHasUserHeartedPostQuery(
+    const { data: hasUserHearted, isLoading: isLoadingHasUserHearted, isFetching: isFetchingHasUserHearted } = useHasUserHeartedPostQuery(
         { postId, userId: userData?._id },
         { skip: postId === undefined || userData?._id === undefined });
 
@@ -68,9 +67,11 @@ export const FullPost = () => {
     const [createdCommentText, setCreatedCommentText] = useState("");
     const [createdCommentErrorMsg, setCreatedCommentErrorMsg] = useState("");
 
+    const isLoadingData = ((isLoadingPost || isFetchingPost) || isLoadingHasUserHearted || isLoadingComments);
 
 
-    useEffect(() => {
+
+    useEffect(() => { //todo check all useEffets for useless [], just select the word, if it is nowhere in the useeffect - delete it.
         if (post) {
             /* if (heartsCount < 0) */ setHeartsCount(post.heartsCount);
             setFullPostCommentsCount(post.commentsCount);
@@ -167,7 +168,7 @@ export const FullPost = () => {
     // todo: "!post" is probably not good.
     if (postError) { return <p className="error">Could not get the post, please try again later.</p>; }
 
-    if (isLoadingPost || isLoadingHasUserHearted || isLoadingComments) return <LoadingScreen />;
+    if (isLoadingData) return <LoadingScreen />;
 
     if (!post) { return <p className="error">Could not get the post, please try again later.</p>; }
     //------------------------------------------------------------------------------------------------------------------------------
@@ -214,9 +215,9 @@ export const FullPost = () => {
                         <div className="post__footer-comments"><img src={commentsIcon} alt="comments icon" /> <p>{fullPostCommentsCount}</p></div>
                     </div>
 
-                    {!isHeartLoading
-                        ? <button className="post__footer-hearts" style={{ backgroundColor: hasUserHearted ? "#113b1f" : "" }} onClick={handleAddRemoveHeart}>{heartsCount} <img src={heartsIcon} alt="hearts icon" /></button>
-                        : <button className="post__footer-hearts"><PulseLoader color={"#c2cad1"} size={5} /></button>
+                    {isFetchingHasUserHearted || isHeartLoading
+                        ? <button className="post__footer-hearts"><PulseLoader color={"#c2cad1"} size={5} /></button>
+                        : <button className="post__footer-hearts" style={{ backgroundColor: hasUserHearted ? "#113b1f" : "" }} onClick={handleAddRemoveHeart}>{heartsCount} <img src={heartsIcon} alt="hearts icon" /></button>
                     }
                 </div>
             </div>

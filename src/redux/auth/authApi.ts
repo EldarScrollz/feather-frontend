@@ -31,10 +31,9 @@ const authApi = featherApi.injectEndpoints({
 
         editUser: builder.mutation<IUser, { oldAvatar: string, body: Partial<IUser>; }>({
             query: ({ oldAvatar, body }) => ({
-                url: '/auth/editProfile',
+                url: `/auth/editProfile?oldAvatar=${oldAvatar}`,
                 method: 'PATCH',
                 body: body,
-                params: { oldAvatar }
             }),
             invalidatesTags: [{ type: 'Post', id: 'AllPosts' }]
         }),

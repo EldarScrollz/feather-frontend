@@ -29,7 +29,7 @@ export const Post = ({ post }: IPostProps) => {
 
     const userData = useAppSelector((state) => state.auth.userData);
 
-    const { data: hasUserHearted, isLoading: isLoadingHasUserHearted } = useHasUserHeartedPostQuery(
+    const { data: hasUserHearted, isLoading: isLoadingHasUserHearted, isFetching: isFetchingHasUserHearted } = useHasUserHeartedPostQuery(
         { postId: post._id, userId: userData?._id },
         { skip: post._id === undefined || userData?._id === undefined, });
 
@@ -40,20 +40,20 @@ export const Post = ({ post }: IPostProps) => {
     const [showPost, setShowPost] = useState(true);
     const [showModal, setShowModal] = useState(false);
 
-    const [isHeartSpinner, setIsHeartSpinner] = useState(true);
+    const [isHeartSpinner, setIsHeartSpinner] = useState(false);
     // const [isUserInHearts, setIsUserInHearts] = useState(false);
 
     const formatViewsCount = Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.viewsCount);
     const formatCommentsCount = Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.commentsCount);
-    const [formatHeartsCount, setFormatHeartsCount] = useState("");
+    const [formatHeartsCount, setFormatHeartsCount] = useState(""); //todo: delete?
 
 
 
     useEffect(() => {
         // setIsUserInHearts(heartData ? true : false);
         if (!formatHeartsCount) { setFormatHeartsCount(Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.heartsCount)); }
-        if (!isLoadingHasUserHearted) setIsHeartSpinner(false);
-    }, [formatHeartsCount, post.heartsCount, isLoadingHasUserHearted]);
+        // if (!isLoadingHasUserHearted && !isFetchingHasUserHearted) setIsHeartSpinner(false);
+    }, [formatHeartsCount, post.heartsCount, isLoadingHasUserHearted, isFetchingHasUserHearted]);
 
 
 
@@ -97,7 +97,7 @@ export const Post = ({ post }: IPostProps) => {
 
     if (!showPost) { return <></>; }
 
-
+    
 
     return (
         <>
@@ -141,9 +141,9 @@ export const Post = ({ post }: IPostProps) => {
                         <div className="post__footer-comments"><img src={commentsIcon} alt="comments icon" /> <p>{formatCommentsCount}</p></div>
                     </div>
 
-                    {!isHeartSpinner
-                        ? <button className="post__footer-hearts" style={{ backgroundColor: hasUserHearted ? "#113b1f" : "" }} onClick={addRemoveHeart}>{formatHeartsCount} <img src={heartsIcon} alt="hearts icon" /></button>
-                        : <button className="post__footer-hearts"><PulseLoader color={"#c2cad1"} size={5} /></button>
+                    {isFetchingHasUserHearted || isHeartSpinner
+                        ? <button className="post__footer-hearts"><PulseLoader color={"#c2cad1"} size={5} /></button>
+                        : <button className="post__footer-hearts" style={{ backgroundColor: hasUserHearted ? "#113b1f" : "" }} onClick={addRemoveHeart}>{Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.heartsCount)} <img src={heartsIcon} alt="hearts icon" /></button>
                     }
                 </div>
 

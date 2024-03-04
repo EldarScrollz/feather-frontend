@@ -99,7 +99,7 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
 
         setIsLoadingEditing(true);
 
-        try { await updateComment({ commentId: comment._id, body: { text: editedCommentText } }).unwrap(); }
+        try { await updateComment({ commentId: comment._id, body: { postId: comment.postId, text: editedCommentText } }).unwrap(); }
         catch (error) { console.error("Could not edit the comment", error); }
 
         setCurrentCommentText(editedCommentText);

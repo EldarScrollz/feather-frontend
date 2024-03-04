@@ -4,6 +4,8 @@ import { IComment } from "../../../models/IComment";
 import { IUser } from "../../../models/IUser";
 
 import { useAppSelector } from "../../../redux/hooks";
+import { useCreateCommentMutation, useDeleteCommentMutation, useGetRepliesQuery, useUpdateCommentMutation } from "../../../redux/comments/commentsApi";
+import { useUpdatePostMutation } from "../../../redux/posts/postsApi";
 
 import { useEffect, useRef, useState } from "react";
 import { PulseLoader } from "react-spinners";
@@ -12,8 +14,6 @@ import ReactMarkdown from "react-markdown";
 import { Reply } from "./replies/Reply";
 import { formatRelativeTime } from "../../../utils/relativeTimeFormatter";
 import { Modal } from "../../../components/modal/Modal";
-import { useCreateCommentMutation, useDeleteCommentMutation, useGetRepliesQuery, useUpdateCommentMutation } from "../../../redux/comments/commentsApi";
-import { useUpdatePostMutation } from "../../../redux/posts/postsApi";
 
 
 
@@ -108,10 +108,10 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
             const decreaseAmount = replies.length + 1;
             setFullPostCommentsCount((prev) => (prev - decreaseAmount) <= 0 ? 0 : (prev - decreaseAmount));
             // Update backend's commentCount (so that on page refresh the count would be synced)
-            await updatePost({
-                id: comment.postId,
-                body: { commentsCount: ((fullPostCommentsCount - decreaseAmount) <= 0) ? 0 : (fullPostCommentsCount - decreaseAmount) }
-            }).unwrap();
+            // await updatePost({
+            //     id: comment.postId,
+            //     body: { commentsCount: ((fullPostCommentsCount - decreaseAmount) <= 0) ? 0 : (fullPostCommentsCount - decreaseAmount) }
+            // }).unwrap();
             // -------------------------------------------------------------------------------------------------------------
 
             setShowComment(false);
@@ -132,7 +132,7 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
         setIsLoadingEditing(true);
 
         try {
-            updateComment({ commentId: comment._id, body: { text: editedCommentText } }).unwrap();
+            updateComment({ commentId: comment._id, body: { postId: comment.postId, text: editedCommentText } }).unwrap();
         }
         catch (error) { console.error("Could not edit the comment", error); }
 

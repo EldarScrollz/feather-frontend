@@ -4,10 +4,10 @@ import { IPost } from "../../models/IPost";
 
 
 
-const postsApi = featherApi.injectEndpoints({
+export const postsApi = featherApi.injectEndpoints({
     endpoints: builder => ({
-        getPosts: builder.query<IPost[], void>({
-            query: () => '/posts',
+        getPosts: builder.query<IPost[], string | void>({
+            query: (sort) => sort ? `/posts?sortBy=${sort}` : '/posts',
             providesTags: (result) => result
                 ? [
                     ...result.map(({ _id }) => ({ type: 'Post' as const, id: `AllPosts${_id}` })),
@@ -22,7 +22,8 @@ const postsApi = featherApi.injectEndpoints({
                 const patchResult = dispatch(
                     postsApi.util.updateQueryData('getPosts', undefined, (draft) => {
                         const foundPost = draft.find(post => post._id === postId);
-                        foundPost?.viewsCount && foundPost.viewsCount++;
+
+                        if (foundPost && foundPost.viewsCount !== undefined) foundPost.viewsCount++;
                         return draft;
                     })
                 );
@@ -47,10 +48,9 @@ const postsApi = featherApi.injectEndpoints({
 
         updatePost: builder.mutation<IPost, { id: string, oldPostImgQuery?: string | void, body: Partial<IPost>; }>({
             query: ({ id, oldPostImgQuery, body }) => ({
-                url: `/posts/${id}`,
+                url: `/posts/${id}?oldPostImg=${oldPostImgQuery}`,
                 method: 'PATCH',
                 body: body,
-                params: { oldPostImgQuery }
             }),
             invalidatesTags: (result, error, args) => [{ type: 'Post', id: `AllPosts${args.id}` }],
         }),

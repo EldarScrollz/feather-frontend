@@ -3,10 +3,12 @@ import { configureStore } from '@reduxjs/toolkit';
 import { authReducer } from './auth/authSlice';
 
 import { featherApi } from './api/featherApi';
+import { postsReducer } from './posts/postsSlice';
 
 const store = configureStore({
     reducer: {
         auth: authReducer,
+        posts: postsReducer,
         [featherApi.reducerPath]: featherApi.reducer
     },
     middleware: (getDefaultMiddleware) =>

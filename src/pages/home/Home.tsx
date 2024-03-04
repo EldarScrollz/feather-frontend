@@ -2,7 +2,9 @@ import "./Home.scss";
 
 import { IPost } from "../../models/IPost";
 
-import {useGetPostsQuery } from "../../redux/posts/postsApi";
+import { useGetPostsQuery } from "../../redux/posts/postsApi";
+import { useAppSelector } from "../../redux/hooks";
+import { RootState } from "../../redux/store";
 
 import { Post } from "./post/Post";
 import { TopTags } from "./topTags/TopTags";
@@ -14,8 +16,11 @@ import { useEffect, useState } from "react";
 
 
 export const Home = () => {
+    const sortByState = useAppSelector((state: RootState) => state.posts.sortBy);
+    const [sortBy, setSortBy] = useState("");
+
     // todo: log errors (in other files also (E.g. TagPage.tsx))
-    const { data: posts, error: postsError, isLoading: isLoadingPosts } = useGetPostsQuery();
+    const { data: posts, error: postsError, isLoading: isLoadingPosts } = useGetPostsQuery(sortBy);
 
     const [animate, setAnimate] = useState("home__posts");
 
@@ -24,7 +29,9 @@ export const Home = () => {
             window.sessionStorage.setItem("home-posts-slide-in", "false");
             setAnimate("home__posts home__posts--animation");
         }
-    }, []);
+
+        setSortBy(sortByState);
+    }, [sortByState]);
 
 
 
