@@ -132,9 +132,11 @@ export const UserProfile = () => {
             dispatch(signOut());
             navigate("/");
         }
-        catch (error: any) {
-            console.error("Could not delete the user", error);
-            setDeleteProfileError(error.response.data.errorMessage);
+        catch (error) {
+            const serverError = (error as { response: { data: { errorMessage: string; }; }; }).response.data.errorMessage;
+
+            if (serverError) setDeleteProfileError(serverError !== undefined);
+            else console.error("Could not delete the user", error);
         }
     };
 
