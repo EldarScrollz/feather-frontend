@@ -1,4 +1,5 @@
 import { featherApi } from "../api/featherApi";
+
 import { IComment } from "../../models/IComment";
 import { postsApi } from "../posts/postsApi";
 
@@ -8,12 +9,6 @@ const commentsApi = featherApi.injectEndpoints({
     endpoints: builder => ({
         getComments: builder.query<IComment[], void>({
             query: () => "/comments",
-            // providesTags: (result) => result
-            //     ? [
-            //         ...result.map(({ _id }) => ({ type: 'Comment' as const, id: _id })),
-            //         { type: 'Comment', id: 'AllComments' },
-            //     ]
-            //     : [{ type: 'Comment', id: 'AllComments' }],
         }),
         getCommentsByPostId: builder.query<IComment[], string | undefined>({
             query: (postId) => `/comments/${postId}`,
@@ -38,11 +33,17 @@ const commentsApi = featherApi.injectEndpoints({
 
             invalidatesTags: [{ type: 'Comment', id: 'AllPostComments' }],
 
-            async onQueryStarted(body, { dispatch, queryFulfilled }) {
+            async onQueryStarted(body, { dispatch, queryFulfilled, getState }) {
+                const invalidatedQueries = postsApi.util.selectInvalidatedBy(getState(), [{ type: 'Post', id: `AllPosts${body.postId}` }]);
+
+                if (invalidatedQueries.length === 0) return;
+
+                const originalArg = invalidatedQueries[invalidatedQueries.length - 1].originalArgs;
+
                 const patchResult = dispatch(
-                    postsApi.util.updateQueryData('getPosts', undefined, (draft) => {
+                    postsApi.util.updateQueryData('getPosts', originalArg, (draft) => {
                         const foundPost = draft.find(post => post._id === body.postId);
-                        
+
                         if (foundPost && foundPost.commentsCount !== undefined) foundPost.commentsCount++;
                         return draft;
                     })
@@ -75,11 +76,17 @@ const commentsApi = featherApi.injectEndpoints({
 
             invalidatesTags: [{ type: 'Comment', id: 'AllPostComments' }],
 
-            async onQueryStarted(body, { dispatch, queryFulfilled }) {
+            async onQueryStarted(args, { dispatch, queryFulfilled, getState }) {
+                const invalidatedQueries = postsApi.util.selectInvalidatedBy(getState(), [{ type: 'Post', id: `AllPosts${args.body.postId}` }]);
+
+                if (invalidatedQueries.length === 0) return;
+
+                const originalArg = invalidatedQueries[invalidatedQueries.length - 1].originalArgs;
+
                 const patchResult = dispatch(
-                    postsApi.util.updateQueryData('getPosts', undefined, (draft) => {
-                        const foundPost = draft.find(post => post._id === body.body.postId);
-                        
+                    postsApi.util.updateQueryData('getPosts', originalArg, (draft) => {
+                        const foundPost = draft.find(post => post._id === args.body.postId);
+
                         if (foundPost && foundPost.commentsCount !== undefined) foundPost.commentsCount--;
                         return draft;
                     })

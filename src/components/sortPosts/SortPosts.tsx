@@ -1,16 +1,19 @@
 import "./SortPosts.scss";
 
 import { useEffect, useRef, useState } from "react";
-import { useAppDispatch } from "../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { setSortBy } from "../../redux/posts/postsSlice";
+import { RootState } from "../../redux/store";
 
-export const SortPosts = () => { //todo: since we switched to RTK Query the sorting should be done on backend.
+export const SortPosts = () => {
     const dispatch = useAppDispatch();
 
     const sortDropdownRef = useRef<HTMLDivElement>(null);
 
     const [showSortDropdown, setShowSortDropdown] = useState(false);
-    const [sortText, setSortText] = useState("new posts");
+    
+    const sortByState = useAppSelector((state: RootState) => state.posts.sortBy);
+    const [sortText, setSortText] = useState(sortByState);
 
     const sortPosts = async (option: string) => { setSortText(option); dispatch(setSortBy(option)); };
 
@@ -23,7 +26,7 @@ export const SortPosts = () => { //todo: since we switched to RTK Query the sort
         };
         document.addEventListener("click", closeDropdown);
         return () => { document.removeEventListener("click", closeDropdown); };
-    }, [dispatch]);
+    }, []);
 
 
 

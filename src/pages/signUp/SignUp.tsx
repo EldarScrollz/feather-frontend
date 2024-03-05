@@ -12,7 +12,7 @@ import { useRef, useState } from "react";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-import { /* fetchRegister, */ isCurrentUserSignedIn, setUserData } from "../../redux/auth/authSlice";
+import { isCurrentUserSignedIn, setUserData } from "../../redux/auth/authSlice";
 import { Navigate } from "react-router-dom";
 import { useSignUpUserMutation } from "../../redux/auth/authApi";
 

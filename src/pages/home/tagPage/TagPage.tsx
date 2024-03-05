@@ -17,7 +17,7 @@ import { TopTags } from "../topTags/TopTags";
 export const TagPage = () => {
     const { tag } = useParams();
 
-    const { data: posts, error: postsError, isLoading: isLoadingPosts } = useGetPostsQuery();
+    const { data: posts, error: postsError, isLoading: isLoadingPosts } = useGetPostsQuery("new posts");
 
     const postsWithTag = posts?.filter((e: IPost) => { return tag && e.tags?.includes(tag); });
 

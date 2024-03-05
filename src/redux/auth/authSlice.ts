@@ -7,13 +7,11 @@ import { RootState } from '../store';
 
 interface IAuthState {
     userData: IUser | null,
-    // status: string;
 }
 
 const initialState: IAuthState =
 {
     userData: null,
-    // status: "loading"
 };
 
 const authSlice = createSlice(

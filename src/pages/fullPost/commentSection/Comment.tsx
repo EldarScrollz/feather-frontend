@@ -5,7 +5,6 @@ import { IUser } from "../../../models/IUser";
 
 import { useAppSelector } from "../../../redux/hooks";
 import { useCreateCommentMutation, useDeleteCommentMutation, useGetRepliesQuery, useUpdateCommentMutation } from "../../../redux/comments/commentsApi";
-import { useUpdatePostMutation } from "../../../redux/posts/postsApi";
 
 import { useEffect, useRef, useState } from "react";
 import { PulseLoader } from "react-spinners";
@@ -19,11 +18,10 @@ import { Modal } from "../../../components/modal/Modal";
 
 interface ICommentProps {
     comment: IComment,
-    fullPostCommentsCount: number,
     setFullPostCommentsCount: React.Dispatch<React.SetStateAction<number>>,
 }
 
-export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCount }: ICommentProps) => {
+export const Comment = ({ comment, setFullPostCommentsCount }: ICommentProps) => {
     const user = comment.user as IUser;
 
     const moddedDate = formatRelativeTime(new Date(comment.createdAt));
@@ -35,8 +33,6 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
     const [createComment] = useCreateCommentMutation();
     const [updateComment] = useUpdateCommentMutation();
     const [deleteComment] = useDeleteCommentMutation();
-
-    const [updatePost] = useUpdatePostMutation();
 
     const [showComment, setShowComment] = useState(true);
     const [showReplies, setShowReplies] = useState(false);
@@ -68,7 +64,7 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
         }
 
         if (!isLoadingReplies) setShowReplySpinner(false);
-    }, [isEditingComment, isLoadingReplies]);
+    }, [isLoadingReplies]);
 
 
 
@@ -107,12 +103,6 @@ export const Comment = ({ comment, fullPostCommentsCount, setFullPostCommentsCou
             // Decrease commentsCount when deleting the main comment (we should take replies into account) -----------------
             const decreaseAmount = replies.length + 1;
             setFullPostCommentsCount((prev) => (prev - decreaseAmount) <= 0 ? 0 : (prev - decreaseAmount));
-            // Update backend's commentCount (so that on page refresh the count would be synced)
-            // await updatePost({
-            //     id: comment.postId,
-            //     body: { commentsCount: ((fullPostCommentsCount - decreaseAmount) <= 0) ? 0 : (fullPostCommentsCount - decreaseAmount) }
-            // }).unwrap();
-            // -------------------------------------------------------------------------------------------------------------
 
             setShowComment(false);
         }

@@ -7,7 +7,6 @@ import { Navigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useSignInUserMutation } from "../../redux/auth/authApi";
 import { isCurrentUserSignedIn, setUserData } from "../../redux/auth/authSlice";
-// import { fetchAuth, isCurrentUserSignedIn } from "../../redux/auth/authSlice";
 
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -37,7 +36,6 @@ export const SignIn = () => {
 
 
     const onSubmit = async (onSubmitValues: { email: string, password: string; }) => {
-        // const data = await dispatch(fetchAuth(onSubmitValues));
         const data = await signInUser({...onSubmitValues}).unwrap()
         if (!data) { return setIsUser404(true); }
         await dispatch(setUserData(data))

@@ -3,16 +3,10 @@ import { featherApi } from "../api/featherApi";
 import { IHeart } from "../../models/IHeart";
 import { postsApi } from "../posts/postsApi";
 
-const heartsApi = featherApi.injectEndpoints({ //todo: do the same manual cache thing that I did with posts?
+const heartsApi = featherApi.injectEndpoints({
     endpoints: builder => ({
         getAllHearts: builder.query<IHeart[], void>({
             query: () => "/hearts",
-            // providesTags: (result) => result
-            //     ? [
-            //         ...result.map(({ _id }) => ({ type: 'Heart' as const, id: _id })),
-            //         { type: 'Heart', id: 'AllHearts' },
-            //     ]
-            //     : [{ type: 'Heart', id: 'AllHearts' }],
         }),
         getHeartByPostId: builder.query<IHeart[], string | undefined>({
             query: (postId) => `/hearts/${postId}`,
@@ -31,12 +25,17 @@ const heartsApi = featherApi.injectEndpoints({ //todo: do the same manual cache 
 
             invalidatesTags: (result, error, postId) => [
                 { type: 'Heart', id: postId },
-                // { type: 'Post', id: `AllPosts${postId}` }
             ],
 
-            async onQueryStarted(postId, { dispatch, queryFulfilled }) {
+            async onQueryStarted(postId, { dispatch, queryFulfilled, getState }) {
+                const invalidatedQueries = postsApi.util.selectInvalidatedBy(getState(), [{ type: 'Post', id: `AllPosts${postId}` }]);
+
+                if (invalidatedQueries.length === 0) return;
+
+                const originalArg = invalidatedQueries[invalidatedQueries.length - 1].originalArgs;
+
                 const patchResult = dispatch(
-                    postsApi.util.updateQueryData('getPosts', undefined, (draft) => {
+                    postsApi.util.updateQueryData('getPosts', originalArg, (draft) => {
                         const foundPost = draft.find(post => post._id === postId);
 
                         if (foundPost && foundPost.heartsCount !== undefined) foundPost.heartsCount++;
@@ -61,14 +60,19 @@ const heartsApi = featherApi.injectEndpoints({ //todo: do the same manual cache 
 
             invalidatesTags: (result, error, args) => [
                 { type: 'Heart', id: args.postId },
-                // { type: 'Post', id: `AllPosts${args.postId}` }
             ],
 
-            async onQueryStarted(args, { dispatch, queryFulfilled }) {
+            async onQueryStarted(args, { dispatch, queryFulfilled, getState }) {
+                const invalidatedQueries = postsApi.util.selectInvalidatedBy(getState(), [{ type: 'Post', id: `AllPosts${args.postId}` }]);
+
+                if (invalidatedQueries.length === 0) return;
+
+                const originalArg = invalidatedQueries[invalidatedQueries.length - 1].originalArgs;
+
                 const patchResult = dispatch(
-                    postsApi.util.updateQueryData('getPosts', undefined, (draft) => {
+                    postsApi.util.updateQueryData('getPosts', originalArg, (draft) => {
                         const foundPost = draft.find(post => post._id === args.postId);
-                        
+
                         if (foundPost && foundPost.heartsCount !== undefined) foundPost.heartsCount--;
                         return draft;
                     })

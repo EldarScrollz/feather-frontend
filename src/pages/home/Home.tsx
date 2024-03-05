@@ -19,7 +19,6 @@ export const Home = () => {
     const sortByState = useAppSelector((state: RootState) => state.posts.sortBy);
     const [sortBy, setSortBy] = useState("");
 
-    // todo: log errors (in other files also (E.g. TagPage.tsx))
     const { data: posts, error: postsError, isLoading: isLoadingPosts } = useGetPostsQuery(sortBy);
 
     const [animate, setAnimate] = useState("home__posts");

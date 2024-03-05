@@ -6,7 +6,7 @@ import { IPost } from "../../models/IPost";
 
 export const postsApi = featherApi.injectEndpoints({
     endpoints: builder => ({
-        getPosts: builder.query<IPost[], string | void>({
+        getPosts: builder.query<IPost[], string>({
             query: (sort) => sort ? `/posts?sortBy=${sort}` : '/posts',
             providesTags: (result) => result
                 ? [
@@ -18,9 +18,15 @@ export const postsApi = featherApi.injectEndpoints({
         getPost: builder.query<IPost, string | undefined>({
             query: (postId) => `/posts/${postId}`,
             providesTags: (result, error, postId) => result ? [{ type: 'Post', id: postId },] : ["Post"],
-            async onQueryStarted(postId, { dispatch, queryFulfilled }) {
+            async onQueryStarted(postId, { dispatch, queryFulfilled, getState }) {
+                const invalidatedQueries = postsApi.util.selectInvalidatedBy(getState(), [{ type: 'Post', id: `AllPosts${postId}` }]);
+                
+                if (invalidatedQueries.length === 0) return;
+
+                const originalArg = invalidatedQueries[invalidatedQueries.length - 1].originalArgs;
+
                 const patchResult = dispatch(
-                    postsApi.util.updateQueryData('getPosts', undefined, (draft) => {
+                    postsApi.util.updateQueryData('getPosts', originalArg, (draft) => {
                         const foundPost = draft.find(post => post._id === postId);
 
                         if (foundPost && foundPost.viewsCount !== undefined) foundPost.viewsCount++;

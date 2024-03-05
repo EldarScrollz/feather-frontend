@@ -54,8 +54,7 @@ export const FullPost = () => {
     //=========================================================
 
     const [isHeartLoading, setIsHeartLoading] = useState(false);
-    const [heartsCount, setHeartsCount] = useState(-1);
-    // const [isUserInHearts, setIsUserInHearts] = useState(false);
+    const [heartsCount, setHeartsCount] = useState(0);
     const [showModal, setShowModal] = useState(false);
 
     const [isCommentLoading, setIsCommentLoading] = useState(false);
@@ -71,14 +70,11 @@ export const FullPost = () => {
 
 
 
-    useEffect(() => { //todo check all useEffets for useless [], just select the word, if it is nowhere in the useeffect - delete it.
+    useEffect(() => {
         if (post) {
-            /* if (heartsCount < 0) */ setHeartsCount(post.heartsCount);
+            setHeartsCount(post.heartsCount);
             setFullPostCommentsCount(post.commentsCount);
         }
-
-        // Check if user already "hearted" this post.
-        // setIsUserInHearts(isUserHearted ? true : false);
     }, [post]);
 
 
@@ -94,14 +90,12 @@ export const FullPost = () => {
             if (!hasUserHearted) {
                 await createHeart(postId).unwrap();
 
-                setHeartsCount(prev => prev + 1); //todo
-                // setIsUserInHearts(true);
+                setHeartsCount(prev => prev + 1);
             }
             else if (hasUserHearted) {
                 userData?._id && await deleteHeart({ postId: postId, userId: userData?._id }).unwrap();
 
-                setHeartsCount(prev => prev - 1);//todo
-                // setIsUserInHearts(false);
+                setHeartsCount(prev => prev - 1);
             }
         }
         catch (error) { console.error("Could not add/remove the heart!", error); }
@@ -163,14 +157,11 @@ export const FullPost = () => {
 
 
     // Checks ----------------------------------------------------------------------------------------------------------------------
-    if (!userData) return <p className="error">{"Sign in to view the post"}</p>;
-
-    // todo: "!post" is probably not good.
-    if (postError) { return <p className="error">Could not get the post, please try again later.</p>; }
-
     if (isLoadingData) return <LoadingScreen />;
 
-    if (!post) { return <p className="error">Could not get the post, please try again later.</p>; }
+    if (!userData) return <p className="error">{"Sign in to view the post"}</p>;
+
+    if (postError || !post) { return <p className="error">Could not get the post, please try again later.</p>; }
     //------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -244,7 +235,7 @@ export const FullPost = () => {
 
                 {comments
                     ?.filter((e: IComment) => e.commentParentId === null)
-                    .map((e: IComment) => { return <Comment key={e._id} comment={e} fullPostCommentsCount={fullPostCommentsCount} setFullPostCommentsCount={setFullPostCommentsCount} />; })
+                    .map((e: IComment) => { return <Comment key={e._id} comment={e} setFullPostCommentsCount={setFullPostCommentsCount} />; })
                 }
             </div>
 

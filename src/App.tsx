@@ -18,17 +18,14 @@ import { setUserData } from "./redux/auth/authSlice";
 
 function App() {
   const dispatch = useAppDispatch();
-  const { data } = useGetSignedInUserQuery();
+  const { data: auth } = useGetSignedInUserQuery();
 
   useEffect(() => {
-    (async () => {
-      try { data && await dispatch(setUserData(data)); } //todo: add status to userData so we can differentiate when it's loading.
-      catch (error) { console.error("Could not get the signed in user's data!", error); }
-    })();
-  }, [dispatch, data]); //todo: make the loading logic for useGetSignedInUserQuery (data).
+    auth && dispatch(setUserData(auth));
+  }, [dispatch, auth]); 
 
 
-  
+
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route path="/" element={<RootLayout />}>

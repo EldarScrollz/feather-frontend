@@ -11,7 +11,7 @@ import { useAppSelector } from "../../../redux/hooks";
 import { useDeletePostMutation } from "../../../redux/posts/postsApi";
 import { useCreateHeartMutation, useDeleteHeartMutation, useHasUserHeartedPostQuery } from "../../../redux/hearts/heartsApi";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { PulseLoader } from "react-spinners";
@@ -41,19 +41,9 @@ export const Post = ({ post }: IPostProps) => {
     const [showModal, setShowModal] = useState(false);
 
     const [isHeartSpinner, setIsHeartSpinner] = useState(false);
-    // const [isUserInHearts, setIsUserInHearts] = useState(false);
 
     const formatViewsCount = Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.viewsCount);
     const formatCommentsCount = Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.commentsCount);
-    const [formatHeartsCount, setFormatHeartsCount] = useState(""); //todo: delete?
-
-
-
-    useEffect(() => {
-        // setIsUserInHearts(heartData ? true : false);
-        if (!formatHeartsCount) { setFormatHeartsCount(Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.heartsCount)); }
-        // if (!isLoadingHasUserHearted && !isFetchingHasUserHearted) setIsHeartSpinner(false);
-    }, [formatHeartsCount, post.heartsCount, isLoadingHasUserHearted, isFetchingHasUserHearted]);
 
 
 
@@ -71,22 +61,8 @@ export const Post = ({ post }: IPostProps) => {
         setIsHeartSpinner(true);
 
         try {
-            if (!hasUserHearted) {
-                await createHeart(post._id).unwrap();
-
-                setFormatHeartsCount((prev) => Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }
-                ).format((Number(prev) + 1))); // todo
-
-                // setIsUserInHearts(true);
-            }
-            else if (hasUserHearted) {
-                userData && await deleteHeart({ postId: post._id, userId: userData?._id }).unwrap();
-
-                setFormatHeartsCount((prev) => Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }
-                ).format((Number(prev) - 1))); //todo
-
-                // setIsUserInHearts(false);
-            }
+            if (!hasUserHearted) { await createHeart(post._id).unwrap(); }
+            else if (hasUserHearted) { userData && await deleteHeart({ postId: post._id, userId: userData?._id }).unwrap(); }
         }
         catch (error) { console.error("Could not add/remove the heart!", error); }
 
@@ -97,7 +73,7 @@ export const Post = ({ post }: IPostProps) => {
 
     if (!showPost) { return <></>; }
 
-    
+
 
     return (
         <>
@@ -141,7 +117,7 @@ export const Post = ({ post }: IPostProps) => {
                         <div className="post__footer-comments"><img src={commentsIcon} alt="comments icon" /> <p>{formatCommentsCount}</p></div>
                     </div>
 
-                    {isFetchingHasUserHearted || isHeartSpinner
+                    {(isLoadingHasUserHearted || isFetchingHasUserHearted) || isHeartSpinner
                         ? <button className="post__footer-hearts"><PulseLoader color={"#c2cad1"} size={5} /></button>
                         : <button className="post__footer-hearts" style={{ backgroundColor: hasUserHearted ? "#113b1f" : "" }} onClick={addRemoveHeart}>{Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.heartsCount)} <img src={heartsIcon} alt="hearts icon" /></button>
                     }

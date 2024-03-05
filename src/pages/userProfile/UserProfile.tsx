@@ -20,7 +20,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Modal } from "../../components/modal/Modal";
 import { LoadingScreen } from "../../components/loadingScreen/LoadingScreen";
 
-//todo: delete all unnecessary dispatches everywhere
+
 
 interface IProfileData {
     email: string,

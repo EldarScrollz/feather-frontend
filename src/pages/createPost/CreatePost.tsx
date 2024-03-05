@@ -127,14 +127,6 @@ export const CreatePost = () => {
             // If original image hasn't been affected - do not delete the current image.
             const oldPostImgQuery = (postImgUrl !== noPostImgUrl) ? postImgPath : "";
 
-            console.log('postImgUrl',postImgUrl);
-            console.log('noPostImgUrl',noPostImgUrl);
-            console.log('postImgUrl === noPostImgUrl',postImgUrl === noPostImgUrl);
-            
-            
-            console.log('oldPostImgQuery',oldPostImgQuery);
-            
-
             const resultData = idFromLink
                 ? await updatePost({ id: idFromLink, oldPostImgQuery, body }).unwrap()
                 : await createPost(body).unwrap();

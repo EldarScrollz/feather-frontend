@@ -6,7 +6,7 @@ interface IPostsState {
 
 const initialState: IPostsState =
 {
-    sortBy: "",
+    sortBy: "new posts",
 };
 
 const postsSlice = createSlice(

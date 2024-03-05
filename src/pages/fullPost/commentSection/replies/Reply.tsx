@@ -46,7 +46,7 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
             commentTextareaRef.current.style.height = 'inherit';
             commentTextareaRef.current.style.height = `${commentTextareaRef.current.scrollHeight}px`;
         }
-    }, [isEditingComment]);
+    }, []);
 
 
 
