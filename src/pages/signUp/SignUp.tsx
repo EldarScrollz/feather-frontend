@@ -80,7 +80,7 @@ export const SignUp = () => {
     return (
         <div className="sign-up">
             <form onSubmit={handleSubmit(onSubmit)}>
-                <strong>Sign up to <span style={{ color: "#c52b2b" }}>FEATHER</span></strong>
+                <h2>Sign up to <span style={{ color: "#c52b2b" }}>FEATHER</span></h2>
 
                 {isCroppingImg
                     ? <div className="crop-image">
