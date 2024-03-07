@@ -51,7 +51,7 @@ export const UserProfile = () => {
 
     const noAvatarUrl = process.env.REACT_APP_BACKEND as string + process.env.REACT_APP_NOIMG as string;
     const [avatarPath, setAvatarPath] = useState("");
-    const [avatarUrl, setAvatarUrl] = useState(noAvatarUrl);
+    const [avatarUrl, setAvatarUrl] = useState("");
     const [imgExtError, setImgExtError] = useState("");
 
     // react-easy-crop ------------------------------------------------------------------------------------------------------------------
@@ -122,7 +122,7 @@ export const UserProfile = () => {
 
 
 
-    if (!userData) return <LoadingScreen />;
+    if (!avatarUrl || !userData) return <LoadingScreen />;
 
 
 
