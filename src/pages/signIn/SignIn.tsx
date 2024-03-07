@@ -36,9 +36,10 @@ export const SignIn = () => {
 
 
     const onSubmit = async (onSubmitValues: { email: string, password: string; }) => {
-        const data = await signInUser({...onSubmitValues}).unwrap()
-        if (!data) { return setIsUser404(true); }
-        await dispatch(setUserData(data))
+        try {
+            const data = await signInUser({ ...onSubmitValues }).unwrap();
+            await dispatch(setUserData(data));
+        } catch (error) { setIsUser404(true); }
     };
 
 

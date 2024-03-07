@@ -112,6 +112,7 @@ export const UserProfile = () => {
             setAvatarPath(userData?.userAvatar);
             setAvatarUrl(process.env.REACT_APP_BACKEND + userData?.userAvatar);
         }
+        else if (userData) { setAvatarUrl(noAvatarUrl); }
 
         // React hook form default values.
         reset({
@@ -133,7 +134,7 @@ export const UserProfile = () => {
             navigate("/");
         }
         catch (error) {
-            const serverError = (error as { response: { data: { errorMessage: string; }; }; }).response.data.errorMessage;
+            const serverError = (error as { data: { errorMessage: string; }; }).data.errorMessage;
 
             if (serverError) setDeleteProfileError(serverError !== undefined);
             else console.error("Could not delete the user", error);
