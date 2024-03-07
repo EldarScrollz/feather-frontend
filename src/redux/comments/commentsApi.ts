@@ -22,6 +22,12 @@ const commentsApi = featherApi.injectEndpoints({
 
         getReplies: builder.query<IComment[], string>({
             query: (commentId) => `/comments/replies/${commentId}`,
+            providesTags: (result, error, commentId) => result
+                ? [
+                    { type: 'Comment', id: commentId },
+                    { type: 'Comment', id: 'AllPostComments' },
+                ]
+                : [{ type: 'Comment', id: 'AllPostComments' }],
         }),
 
         createComment: builder.mutation<IComment, Partial<IComment>>({
