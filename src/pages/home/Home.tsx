@@ -19,7 +19,7 @@ export const Home = () => {
     const sortByState = useAppSelector((state: RootState) => state.posts.sortBy);
     const [sortBy, setSortBy] = useState("");
 
-    const { data: posts, error: postsError, isLoading: isLoadingPosts } = useGetPostsQuery(sortBy);
+    const { data: posts, error: postsError, isLoading: isLoadingPosts, isFetching:isFetchingPosts } = useGetPostsQuery(sortBy);
 
     const [animate, setAnimate] = useState("home__posts");
 
@@ -35,7 +35,7 @@ export const Home = () => {
 
 
     if (postsError) { return <p className="error">Could not get the posts, please try again later.</p>; }
-    if (isLoadingPosts) return <LoadingScreen />;
+    if (isLoadingPosts || isFetchingPosts) return <LoadingScreen />;
 
 
 

@@ -18,12 +18,20 @@
         width: 100%;
         background-color: g.$backgroundColor5;
         border-bottom: .05rem solid g.$borderColor1;
+
+        @include g.breakpoint(medium) {
+            height: 25rem;
+        }
     }
 
     &__avatar {
         width: 100%;
         height: 100%;
         object-fit: contain;
+
+        @include g.breakpoint(medium) {
+            margin-inline: auto;
+        }
     }
 
     &__name {
