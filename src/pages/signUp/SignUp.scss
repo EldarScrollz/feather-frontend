@@ -14,6 +14,10 @@
         width: 100%;
         background-color: g.$backgroundColor5;
         border-bottom: .05rem solid g.$borderColor1;
+
+        @include g.breakpoint(medium) {
+            height: 25rem;
+        }
     }
 
     &__avatar {
