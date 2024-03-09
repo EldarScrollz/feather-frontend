@@ -73,8 +73,8 @@ const commentsApi = featherApi.injectEndpoints({
             invalidatesTags: (result, error, args) => [{ type: 'Comment', id: args.body.postId }],
         }),
 
-        deleteComment: builder.mutation<string, { commentId: string, body: Partial<IComment>; }>({
-            query: ({ commentId, body }) => ({
+        deleteComment: builder.mutation<string, { commentId: string, deleteCount: number, body: Partial<IComment>; }>({
+            query: ({ commentId, deleteCount, body }) => ({
                 url: `/comments/${commentId}`,
                 method: 'DELETE',
                 body: body
@@ -93,7 +93,7 @@ const commentsApi = featherApi.injectEndpoints({
                     postsApi.util.updateQueryData('getPosts', originalArg, (draft) => {
                         const foundPost = draft.find(post => post._id === args.body.postId);
 
-                        if (foundPost && foundPost.commentsCount !== undefined) foundPost.commentsCount--;
+                        if (foundPost && foundPost.commentsCount !== undefined) foundPost.commentsCount = (foundPost.commentsCount - args.deleteCount);
                         return draft;
                     })
                 );

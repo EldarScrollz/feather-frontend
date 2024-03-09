@@ -98,10 +98,11 @@ export const Comment = ({ comment, setFullPostCommentsCount }: ICommentProps) =>
                 commentParentId: comment.commentParentId,
             };
 
-            await deleteComment({ commentId: comment._id, body: commentBody }).unwrap();
-
             // Decrease commentsCount when deleting the main comment (we should take replies into account) -----------------
             const decreaseAmount = replies.length + 1;
+
+            await deleteComment({ commentId: comment._id, deleteCount: decreaseAmount, body: commentBody }).unwrap();
+
             setFullPostCommentsCount((prev) => (prev - decreaseAmount) <= 0 ? 0 : (prev - decreaseAmount));
 
             setShowComment(false);

@@ -77,7 +77,7 @@ export const Reply = ({ comment, setFullPostCommentsCount, setParentCommentsCoun
         };
 
         try {
-            await deleteComment({ commentId: comment._id, body }).unwrap();
+            await deleteComment({ commentId: comment._id, deleteCount: 1, body }).unwrap();
         }
         catch (error) { console.error("Could not delete the reply", error); }
 
