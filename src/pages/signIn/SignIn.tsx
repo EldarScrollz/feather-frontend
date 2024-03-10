@@ -39,6 +39,7 @@ export const SignIn = () => {
         try {
             const data = await signInUser({ ...onSubmitValues }).unwrap();
             await dispatch(setUserData(data));
+            window.localStorage.setItem("wasUserSignedIn", "true");
         } catch (error) { setIsUser404(true); }
     };
 

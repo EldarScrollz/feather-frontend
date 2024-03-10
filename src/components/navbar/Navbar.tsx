@@ -3,12 +3,12 @@ import logo from "./featherLogo.svg";
 
 import { Link, useNavigate } from "react-router-dom";
 
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { isCurrentUserSignedIn, signOut } from "../../redux/auth/authSlice";
+import { useAppDispatch } from "../../redux/hooks";
+import { setUserData, signOut } from "../../redux/auth/authSlice";
 
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "../modal/Modal";
-import { useSignOutUserMutation } from "../../redux/auth/authApi";
+import { useGetSignedInUserQuery, useSignOutUserMutation } from "../../redux/auth/authApi";
 
 
 export const Navbar = () => {
@@ -17,24 +17,32 @@ export const Navbar = () => {
     const dispatch = useAppDispatch();
     const [signOutUser] = useSignOutUserMutation();
 
-    const isUserSignedIn = useAppSelector(isCurrentUserSignedIn);
     const navbarRef = useRef<HTMLDivElement>(null);
 
     const [showHamMenu, setShowHamMenu] = useState(false);
 
     const [showModal, setShowModal] = useState(false);
 
+    const { data: auth, isLoading: isLoadingAuth } = useGetSignedInUserQuery();
 
-
-    // Close hamburger menu when clicking outside of it
     useEffect(() => {
+        if (!isLoadingAuth) {
+            if (auth) {
+                dispatch(setUserData(auth));
+                window.localStorage.setItem("wasUserSignedIn", "true");
+            }
+            else {
+                window.localStorage.setItem("wasUserSignedIn", "false");
+            }
+        }
+
         const closeHamMenu = (e: MouseEvent) => {
             if (!(e.target instanceof HTMLElement)) return;
             !navbarRef.current?.contains(e.target) && setShowHamMenu(false);
         };
         document.addEventListener("click", closeHamMenu);
         return () => { document.removeEventListener("click", closeHamMenu); };
-    }, []);
+    }, [auth, isLoadingAuth, dispatch]);
 
 
 
@@ -42,6 +50,7 @@ export const Navbar = () => {
         try {
             await signOutUser().unwrap();
             dispatch(signOut());
+            window.localStorage.setItem("wasUserSignedIn", "false");
             navigate("/");
         } catch (error) {
             console.error("Could not sign out!", error);
@@ -61,7 +70,7 @@ export const Navbar = () => {
                     <nav className={showHamMenu ? "navbar__options-wrapper navbar__options-wrapper--active" : "navbar__options-wrapper"} >
                         <div className="navbar__options">
                             <Link to="/" onClick={() => { setShowHamMenu(false); }}>HOME</Link>
-                            {isUserSignedIn ?
+                            {(window.localStorage.getItem("wasUserSignedIn") === "true") ?
                                 <>
                                     <Link to="/create-post" onClick={() => setShowHamMenu(false)}>CREATE POST</Link>
                                     <Link to="/user-profile" onClick={() => setShowHamMenu(false)}>PROFILE</Link>

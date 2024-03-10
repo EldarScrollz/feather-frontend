@@ -9,11 +9,13 @@
     @include g.breakpoint(medium) {
         position: sticky;
         top: 0;
+
+        height: 4.1rem;
     }
 }
 
 .navbar {
-    max-width: 60rem;
+    max-width: 80rem;
     margin-inline: auto;
 
     @include g.breakpoint(medium) {
@@ -22,10 +24,10 @@
 
     &__logo {
         width: 100%;
-        // border-bottom: .1rem solid g.$borderColor1;
 
         @include g.breakpoint(medium) {
             width: auto;
+            margin-left: 1rem;
         }
 
         a {

@@ -8,24 +8,10 @@ import { FullPost } from "./pages/fullPost/FullPost";
 import { CreatePost } from "./pages/createPost/CreatePost";
 import { TagPage } from "./pages/home/tagPage/TagPage";
 
-import { useAppDispatch } from "./redux/hooks";
-
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from "react-router-dom";
-import { useEffect } from "react";
 import { RootLayout } from "./layouts/RootLayout";
-import { useGetSignedInUserQuery } from "./redux/auth/authApi";
-import { setUserData } from "./redux/auth/authSlice";
 
 function App() {
-  const dispatch = useAppDispatch();
-  const { data: auth } = useGetSignedInUserQuery();
-
-  useEffect(() => {
-    auth && dispatch(setUserData(auth));
-  }, [dispatch, auth]); 
-
-
-
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route path="/" element={<RootLayout />}>
