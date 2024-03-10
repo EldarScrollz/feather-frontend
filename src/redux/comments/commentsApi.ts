@@ -39,14 +39,14 @@ const commentsApi = featherApi.injectEndpoints({
 
             invalidatesTags: [{ type: 'Comment', id: 'AllPostComments' }],
 
-            async onQueryStarted(body, { dispatch, queryFulfilled, getState }) {
+            async onQueryStarted(body, { dispatch, getState }) {
                 const invalidatedQueries = postsApi.util.selectInvalidatedBy(getState(), [{ type: 'Post', id: `AllPosts${body.postId}` }]);
 
                 if (invalidatedQueries.length === 0) return;
 
                 const originalArg = invalidatedQueries[invalidatedQueries.length - 1].originalArgs;
 
-                const patchResult = dispatch(
+                dispatch(
                     postsApi.util.updateQueryData('getPosts', originalArg, (draft) => {
                         const foundPost = draft.find(post => post._id === body.postId);
 
@@ -54,13 +54,6 @@ const commentsApi = featherApi.injectEndpoints({
                         return draft;
                     })
                 );
-
-                try {
-                    await queryFulfilled;
-                } catch (error) {
-                    console.error("createComment onQueryStarted error!", error);
-                    patchResult.undo();
-                }
             },
         }),
 
@@ -82,14 +75,14 @@ const commentsApi = featherApi.injectEndpoints({
 
             invalidatesTags: [{ type: 'Comment', id: 'AllPostComments' }],
 
-            async onQueryStarted(args, { dispatch, queryFulfilled, getState }) {
+            async onQueryStarted(args, { dispatch, getState }) {
                 const invalidatedQueries = postsApi.util.selectInvalidatedBy(getState(), [{ type: 'Post', id: `AllPosts${args.body.postId}` }]);
 
                 if (invalidatedQueries.length === 0) return;
 
                 const originalArg = invalidatedQueries[invalidatedQueries.length - 1].originalArgs;
 
-                const patchResult = dispatch(
+                dispatch(
                     postsApi.util.updateQueryData('getPosts', originalArg, (draft) => {
                         const foundPost = draft.find(post => post._id === args.body.postId);
 
@@ -97,13 +90,6 @@ const commentsApi = featherApi.injectEndpoints({
                         return draft;
                     })
                 );
-
-                try {
-                    await queryFulfilled;
-                } catch (error) {
-                    console.error("deleteComment onQueryStarted error!", error);
-                    patchResult.undo();
-                }
             },
         })
     })
