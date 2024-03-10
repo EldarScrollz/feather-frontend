@@ -119,7 +119,7 @@ export const UserProfile = () => {
             email: userData?.email,
             name: userData?.name,
         });
-    }, [userData, reset]);
+    }, [userData, noAvatarUrl, reset]);
 
 
 
