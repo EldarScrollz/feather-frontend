@@ -20,6 +20,9 @@ export const postsApi = featherApi.injectEndpoints({
             providesTags: (result, error, postId) => result ? [{ type: 'Post', id: postId },] : ["Post"],
             async onQueryStarted(postId, { dispatch, queryFulfilled, getState }) {
                 const invalidatedQueries = postsApi.util.selectInvalidatedBy(getState(), [{ type: 'Post', id: `AllPosts${postId}` }]);
+
+                if (invalidatedQueries.length === 0) return;
+
                 const originalArg = invalidatedQueries[invalidatedQueries.length - 1].originalArgs;
 
                 const patchResult = dispatch(
