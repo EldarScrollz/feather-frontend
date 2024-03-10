@@ -29,9 +29,6 @@ const heartsApi = featherApi.injectEndpoints({
 
             async onQueryStarted(postId, { dispatch, queryFulfilled, getState }) {
                 const invalidatedQueries = postsApi.util.selectInvalidatedBy(getState(), [{ type: 'Post', id: `AllPosts${postId}` }]);
-
-                if (invalidatedQueries.length === 0) return;
-
                 const originalArg = invalidatedQueries[invalidatedQueries.length - 1].originalArgs;
 
                 const patchResult = dispatch(
@@ -64,9 +61,6 @@ const heartsApi = featherApi.injectEndpoints({
 
             async onQueryStarted(args, { dispatch, queryFulfilled, getState }) {
                 const invalidatedQueries = postsApi.util.selectInvalidatedBy(getState(), [{ type: 'Post', id: `AllPosts${args.postId}` }]);
-
-                if (invalidatedQueries.length === 0) return;
-
                 const originalArg = invalidatedQueries[invalidatedQueries.length - 1].originalArgs;
 
                 const patchResult = dispatch(

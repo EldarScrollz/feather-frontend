@@ -21,7 +21,7 @@ export const TagPage = () => {
     const { tag } = useParams();
 
     const sortByState = useAppSelector((state: RootState) => state.posts.sortBy);
-    const [sortBy, setSortBy] = useState("");
+    const [sortBy, setSortBy] = useState("use posts");
     const { data: posts, error: postsError, isLoading: isLoadingPosts, isFetching: isFetchingPosts } = useGetPostsQuery(sortBy);
 
     const postsWithTag = posts?.filter((e: IPost) => { return tag && e.tags?.includes(tag); });

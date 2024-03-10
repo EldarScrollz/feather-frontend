@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 
 export const Home = () => {
     const sortByState = useAppSelector((state: RootState) => state.posts.sortBy);
-    const [sortBy, setSortBy] = useState("");
+    const [sortBy, setSortBy] = useState("new posts");
 
     const { data: posts, error: postsError, isLoading: isLoadingPosts, isFetching:isFetchingPosts } = useGetPostsQuery(sortBy);
 
