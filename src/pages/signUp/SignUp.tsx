@@ -63,6 +63,7 @@ export const SignUp = () => {
             const imgPath = await uploadImage(croppedAvatarFile as File);
             const props = { ...onSubmitValues, userAvatar: (avatarUrl === noAvatarUrl) ? process.env.REACT_APP_NOIMG as string : imgPath };
             const userData = await signUpUser({ ...props }).unwrap();
+            window.localStorage.setItem("wasUserSignedIn", "true"); // prevents flickering of navbar
             await dispatch(setUserData(userData));
         } catch (error) {
             const serverError = (error as { data: { errorMessage: string; }; }).data.errorMessage;

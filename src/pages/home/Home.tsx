@@ -33,7 +33,7 @@ export const Home = () => {
     }, [sortByState]);
 
 
-
+    //todo: make msg when too many request (for other components too).
     if (postsError) { return <p className="error">Could not get the posts, please try again later.</p>; }
     if (isLoadingPosts || isFetchingPosts) return <LoadingScreen />;
 

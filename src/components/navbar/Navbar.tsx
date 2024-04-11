@@ -29,10 +29,10 @@ export const Navbar = () => {
         if (!isLoadingAuth) {
             if (auth) {
                 dispatch(setUserData(auth));
-                window.localStorage.setItem("wasUserSignedIn", "true");
+                window.localStorage.setItem("wasUserSignedIn", "true"); // prevents flickering of navbar
             }
             else {
-                window.localStorage.setItem("wasUserSignedIn", "false");
+                window.localStorage.setItem("wasUserSignedIn", "false"); // prevents flickering of navbar
             }
         }
 
@@ -50,7 +50,7 @@ export const Navbar = () => {
         try {
             await signOutUser().unwrap();
             dispatch(signOut());
-            window.localStorage.setItem("wasUserSignedIn", "false");
+            window.localStorage.setItem("wasUserSignedIn", "false"); // prevents flickering of navbar
             navigate("/");
         } catch (error) {
             console.error("Could not sign out!", error);

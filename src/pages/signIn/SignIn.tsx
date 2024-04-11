@@ -39,7 +39,7 @@ export const SignIn = () => {
         try {
             const data = await signInUser({ ...onSubmitValues }).unwrap();
             await dispatch(setUserData(data));
-            window.localStorage.setItem("wasUserSignedIn", "true");
+            window.localStorage.setItem("wasUserSignedIn", "true"); // prevents flickering of navbar
         } catch (error) { setIsUser404(true); }
     };
 

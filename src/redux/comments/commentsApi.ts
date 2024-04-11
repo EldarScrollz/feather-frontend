@@ -8,10 +8,10 @@ import { postsApi } from "../posts/postsApi";
 const commentsApi = featherApi.injectEndpoints({
     endpoints: builder => ({
         getComments: builder.query<IComment[], void>({
-            query: () => "/comments",
+            query: () => "/v1/comments",
         }),
         getCommentsByPostId: builder.query<IComment[], string | undefined>({
-            query: (postId) => `/comments/${postId}`,
+            query: (postId) => `/v1/comments/${postId}`,
             providesTags: (result, error, postId) => result
                 ? [
                     { type: 'Comment', id: postId },
@@ -21,7 +21,7 @@ const commentsApi = featherApi.injectEndpoints({
         }),
 
         getReplies: builder.query<IComment[], string>({
-            query: (commentId) => `/comments/replies/${commentId}`,
+            query: (commentId) => `/v1/comments/replies/${commentId}`,
             providesTags: (result, error, commentId) => result
                 ? [
                     { type: 'Comment', id: commentId },
@@ -32,7 +32,7 @@ const commentsApi = featherApi.injectEndpoints({
 
         createComment: builder.mutation<IComment, Partial<IComment>>({
             query: (body) => ({
-                url: '/comments',
+                url: '/v1/comments',
                 method: 'POST',
                 body: body
             }),
@@ -66,7 +66,7 @@ const commentsApi = featherApi.injectEndpoints({
 
         updateComment: builder.mutation<IComment, { commentId: string, body: Partial<IComment>; }>({
             query: ({ commentId, body }) => ({
-                url: `/comments/${commentId}`,
+                url: `/v1/comments/${commentId}`,
                 method: 'PATCH',
                 body: body
             }),
@@ -75,7 +75,7 @@ const commentsApi = featherApi.injectEndpoints({
 
         deleteComment: builder.mutation<string, { commentId: string, deleteCount: number, body: Partial<IComment>; }>({
             query: ({ commentId, deleteCount, body }) => ({
-                url: `/comments/${commentId}`,
+                url: `/v1/comments/${commentId}`,
                 method: 'DELETE',
                 body: body
             }),

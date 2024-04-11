@@ -129,8 +129,9 @@ export const UserProfile = () => {
 
     const handleAccountDelete = async () => {
         try {
-            await deleteUser({ userId: userData?._id, password: deleteUserPassword }).unwrap();
+            await deleteUser({ password: deleteUserPassword }).unwrap();
             dispatch(signOut());
+            window.localStorage.setItem("wasUserSignedIn", "false"); // prevents flickering of navbar
             navigate("/");
         }
         catch (error) {
@@ -297,4 +298,4 @@ export const UserProfile = () => {
             {showModal && <Modal text={"Delete the account?"} setShowModal={setShowModal} performAction={() => handleAccountDelete()} />}
         </>
     );
-};;
+};

@@ -6,20 +6,20 @@ import { postsApi } from "../posts/postsApi";
 const heartsApi = featherApi.injectEndpoints({
     endpoints: builder => ({
         getAllHearts: builder.query<IHeart[], void>({
-            query: () => "/hearts",
+            query: () => "/v1/hearts",
         }),
         getHeartByPostId: builder.query<IHeart[], string | undefined>({
-            query: (postId) => `/hearts/${postId}`,
+            query: (postId) => `/v1/hearts/${postId}`,
             providesTags: (result, error, postId) => [{ type: 'Heart', id: postId }]
         }),
         hasUserHeartedPost: builder.query<IHeart, { postId: string | undefined, userId: string | undefined; }>({
-            query: ({ postId, userId }) => `hearts/hasUserHeart/${postId}/${userId}`,
+            query: ({ postId, userId }) => `/v1/hearts/hasUserHeart/${postId}/${userId}`,
             providesTags: (result, error, args) => [{ type: 'Heart', id: args.postId }]
         }),
 
         createHeart: builder.mutation<IHeart, string>({
             query: (postId) => ({
-                url: `/hearts/${postId}`,
+                url: `/v1/hearts/${postId}`,
                 method: 'POST'
             }),
 
@@ -54,7 +54,7 @@ const heartsApi = featherApi.injectEndpoints({
 
         deleteHeart: builder.mutation<string, { postId: string, userId: string; }>({
             query: ({ postId, userId }) => ({
-                url: `/hearts/${postId}/${userId}`,
+                url: `/v1/hearts/${postId}/${userId}`,
                 method: 'DELETE'
             }),
 

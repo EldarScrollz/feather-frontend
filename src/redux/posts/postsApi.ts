@@ -7,7 +7,7 @@ import { IPost } from "../../models/IPost";
 export const postsApi = featherApi.injectEndpoints({
     endpoints: builder => ({
         getPosts: builder.query<IPost[], string>({
-            query: (sort) => sort ? `/posts?sortBy=${sort}` : '/posts',
+            query: (sort) => sort ? `/v1/posts?sortBy=${sort}` : '/posts',
             providesTags: (result) => result
                 ? [
                     ...result.map(({ _id }) => ({ type: 'Post' as const, id: `AllPosts${_id}` })),
@@ -16,7 +16,7 @@ export const postsApi = featherApi.injectEndpoints({
                 : [{ type: 'Post', id: 'AllPosts' }],   
         }),
         getPost: builder.query<IPost, string | undefined>({
-            query: (postId) => `/posts/${postId}`,
+            query: (postId) => `/v1/posts/${postId}`,
             providesTags: (result, error, postId) => result ? [{ type: 'Post', id: postId },] : ["Post"],
             async onQueryStarted(postId, { dispatch, queryFulfilled, getState }) {
                 const invalidatedQueries = postsApi.util.selectInvalidatedBy(getState(), [{ type: 'Post', id: `AllPosts${postId}` }]);
@@ -45,7 +45,7 @@ export const postsApi = featherApi.injectEndpoints({
 
         createPost: builder.mutation<IPost, Partial<IPost>>({
             query: (post) => ({
-                url: '/posts',
+                url: '/v1/posts',
                 method: 'POST',
                 body: post
             }),
@@ -54,7 +54,7 @@ export const postsApi = featherApi.injectEndpoints({
 
         updatePost: builder.mutation<IPost, { id: string, oldPostImgQuery?: string | void, body: Partial<IPost>; }>({
             query: ({ id, oldPostImgQuery, body }) => ({
-                url: `/posts/${id}?oldPostImg=${oldPostImgQuery}`,
+                url: `/v1/posts/${id}?oldPostImg=${oldPostImgQuery}`,
                 method: 'PATCH',
                 body: body,
             }),
@@ -63,14 +63,14 @@ export const postsApi = featherApi.injectEndpoints({
 
         deletePost: builder.mutation<string, string>({
             query: (postId) => ({
-                url: `/posts/${postId}`,
+                url: `/v1/posts/${postId}`,
                 method: 'DELETE',
             }),
             invalidatesTags: [{ type: 'Post', id: 'AllPosts' }],
         }),
 
         getTopTags: builder.query<string[], void>({
-            query: () => '/posts/topTags'
+            query: () => '/v1/posts/topTags'
         })
     })
 });
