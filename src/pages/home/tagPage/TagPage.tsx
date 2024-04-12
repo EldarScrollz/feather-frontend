@@ -16,7 +16,7 @@ import { TopTags } from "../topTags/TopTags";
 import { useEffect, useState } from "react";
 
 
-
+// todo: perhaps this component is redundant, we could do the same in 'Home.tsx' component instead.
 export const TagPage = () => {
     const { tag } = useParams();
 
