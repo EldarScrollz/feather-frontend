@@ -5,8 +5,8 @@ import { useState } from "react";
 import { Navigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { useSignInUserMutation } from "../../redux/auth/authApi";
-import { isCurrentUserSignedIn, setUserData } from "../../redux/auth/authSlice";
+import { useSignInUserMutation } from "../../redux/user/userApi";
+import { isCurrentUserSignedIn, setUserData } from "../../redux/user/userSlice";
 
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";

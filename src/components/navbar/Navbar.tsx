@@ -4,11 +4,11 @@ import logo from "./featherLogo.svg";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAppDispatch } from "../../redux/hooks";
-import { setUserData, signOut } from "../../redux/auth/authSlice";
+import { setUserData, signOut } from "../../redux/user/userSlice";
 
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "../modal/Modal";
-import { useGetSignedInUserQuery, useSignOutUserMutation } from "../../redux/auth/authApi";
+import { useGetSignedInUserQuery, useSignOutUserMutation } from "../../redux/user/userApi";
 
 
 export const Navbar = () => {

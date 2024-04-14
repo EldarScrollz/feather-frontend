@@ -2,6 +2,7 @@ import "./UserProfile.scss";
 import "../../utils/imgCropper.scss";
 
 import { uploadImage } from "../../utils/uploadImage";
+import { checkImageExtension } from "../../utils/checkImageExtension";
 import { returnCroppedImage } from "../../utils/returnCroppedImage";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -11,8 +12,8 @@ import { useNavigate } from "react-router-dom";
 import { PulseLoader } from "react-spinners";
 
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { setUserData, signOut } from "../../redux/auth/authSlice";
-import { useDeleteUserMutation, useEditUserMutation } from "../../redux/auth/authApi";
+import { setUserData, signOut } from "../../redux/user/userSlice";
+import { useDeleteUserMutation, useEditUserMutation } from "../../redux/user/userApi";
 
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -49,7 +50,7 @@ export const UserProfile = () => {
     const [deleteUserPassword, setDeleteUserPassword] = useState("");
     const [deleteProfileError, setDeleteProfileError] = useState(false);
 
-    const noAvatarUrl = process.env.REACT_APP_BACKEND as string + process.env.REACT_APP_NOIMG as string;
+    const noAvatarUrl = process.env.REACT_APP_BACKEND + process.env.REACT_APP_NOIMG;
     const [avatarPath, setAvatarPath] = useState("");
     const [avatarUrl, setAvatarUrl] = useState("");
     const [imgExtError, setImgExtError] = useState("");
@@ -108,7 +109,7 @@ export const UserProfile = () => {
 
 
     useEffect(() => {
-        if (userData?.userAvatar && userData?.userAvatar !== process.env.REACT_APP_NOIMG as string) {
+        if (userData?.userAvatar && userData?.userAvatar !== process.env.REACT_APP_NOIMG) {
             setAvatarPath(userData?.userAvatar);
             setAvatarUrl(process.env.REACT_APP_BACKEND + userData?.userAvatar);
         }
@@ -149,7 +150,7 @@ export const UserProfile = () => {
         setIsSubmitLoading(true);
 
         try {
-            const croppedImgPath = await uploadImage(croppedAvatarFile as File);
+            const croppedImgPath = await uploadImage(croppedAvatarFile);
             const oldAvatarQuery = croppedImgPath ? `/?oldAvatar=${avatarPath}` : "";
             const userAvatarToSet = croppedImgPath ? croppedImgPath : avatarPath;
 
@@ -184,6 +185,27 @@ export const UserProfile = () => {
         catch (error) { console.error("Could not edit user's information!", error); setError("currentPassword", { type: "custom", message: "Incorrect password" }); }
 
         setIsSubmitLoading(false);
+    };
+
+
+    const handleImageChange = (input: React.ChangeEvent<HTMLInputElement>) => {
+        if (!inputFileRef.current?.files) return;
+
+        // Size check
+        if (inputFileRef.current?.files[0]?.size > 26214400) { return setImgExtError("Image size can't be higher than 25 megabytes"); }
+        else if (imgExtError) { setImgExtError(""); }
+
+        // Image extension check
+        const extensionError = checkImageExtension(inputFileRef.current.files[0].type);
+
+        if (extensionError) {
+            setImgExtError(`Only ${extensionError} files are allowed.`);
+        }
+        else {
+            setImgExtError("");
+            setIsCroppingImg(true);
+            input.currentTarget.files && setNewAvatarBlobToCrop(URL.createObjectURL(input.currentTarget.files[0]));
+        }
     };
 
 
@@ -226,21 +248,7 @@ export const UserProfile = () => {
                     : <button type="button" onClick={() => inputFileRef.current?.click()}>Select avatar</button>
                 }
 
-                <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={(e) => {
-                    if (!inputFileRef.current?.files) return;
-
-                    // Size check
-                    if (inputFileRef.current?.files[0]?.size > 26214400) { return setImgExtError("Image size can't be higher than 25 megabytes"); }
-                    else if (imgExtError) { setImgExtError(""); }
-
-                    // Extension check
-                    const allowedExtensions = ["image/png", "image/jpg", "image/jpeg", "image/gif"];
-                    if (!allowedExtensions.includes(inputFileRef.current?.files[0]?.type)) { return setImgExtError("Only JPG/JPEG, PNG and GIF files are allowed"); }
-                    else if (imgExtError) { setImgExtError(""); }
-
-                    setIsCroppingImg(true);
-                    e.currentTarget.files && setNewAvatarBlobToCrop(URL.createObjectURL(e.currentTarget.files[0]));
-                }} />
+                <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={(e) => { handleImageChange(e); }} />
 
                 <div className="user-profile__name">
                     <p>Name</p>

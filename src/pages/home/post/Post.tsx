@@ -73,7 +73,7 @@ export const Post = ({ post }: IPostProps) => {
 
     if (!showPost) { return <></>; }
 
-
+    
 
     return (
         <>

@@ -1,6 +1,6 @@
 import { axiosCustom } from "../axiosSettings";
 
-export const uploadImage = async (file: File) => {
+export const uploadImage = async (file: File | null) => {
     try {
         if (!file) return; /* process.env.REACT_APP_NOIMG; */ // If user hasn't selected the avatar or the file is undefined/null
 

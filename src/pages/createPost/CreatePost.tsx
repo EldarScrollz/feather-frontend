@@ -2,6 +2,7 @@ import "./CreatePost.scss";
 import "../../utils/imgCropper.scss";
 
 import { uploadImage } from "../../utils/uploadImage";
+import { checkImageExtension } from "../../utils/checkImageExtension";
 
 import { useForm } from 'react-hook-form';
 import * as yup from "yup";
@@ -34,9 +35,9 @@ export const CreatePost = () => {
     const [isCreatePostLoading, setIsCreatePostLoading] = useState(true);
     const [isCreatingPost, setIsCreatingPost] = useState(false);
 
-    const noPostImgUrl = process.env.REACT_APP_BACKEND as string + process.env.REACT_APP_NOIMG as string;
+    const noPostImgUrl = process.env.REACT_APP_BACKEND + process.env.REACT_APP_NOIMG;
 
-    const [postImgPath, setPostImgPath] = useState("");
+    // const [postImgPath, setPostImgPath] = useState("");
     const [postImgUrl, setPostImgUrl] = useState(noPostImgUrl);
 
     const [text, setText] = useState("");
@@ -75,7 +76,7 @@ export const CreatePost = () => {
         if (idFromLink) {
             if (post) {
                 setText(post.text);
-                setPostImgPath(post.postImg);
+                // setPostImgPath(post.postImg);
                 setPostImgUrl(process.env.REACT_APP_BACKEND + post.postImg);
 
                 // React hook form default values.
@@ -94,7 +95,7 @@ export const CreatePost = () => {
     // simple MDE ----------------------------------------------------------------------------------------------------
     const simpleMdeOptions = useSimpleMdeOptions();
 
-    const simpleMdeOnChange = useCallback((value: string) => {
+    const handleSimpleMdeChange = useCallback((value: string) => {
         if (value.replace(/\s/g, "") === "") { setNoTextError(i => ({ ...i, status: true, message: "You must add a description" })); }
         else if (value.length >= 5000) { setNoTextError(i => ({ ...i, status: true, message: "Max. description lenght is 5000 characters" })); }
         else { setNoTextError(i => ({ ...i, status: false, message: "" })); }
@@ -113,7 +114,7 @@ export const CreatePost = () => {
             if (!inputFileRef.current?.files) return;
             if (text === "") { setNoTextError(i => ({ ...i, status: true, message: "You must add a description" })); return; }
 
-            const croppedImgPath = await uploadImage(inputFileRef.current.files[0] as File);
+            const croppedImgPath = await uploadImage(inputFileRef.current.files[0]);
 
             const formattedTags = (onSubmitValues.tags && onSubmitValues.tags[0] !== "") ? onSubmitValues.tags?.replace(/[\s#]+/g, ' ').trim().split(" ") : [];
 
@@ -121,11 +122,11 @@ export const CreatePost = () => {
                 title: onSubmitValues.title,
                 tags: formattedTags,
                 text,
-                postImg: (croppedImgPath) ? croppedImgPath : (postImgUrl === noPostImgUrl) ? process.env.REACT_APP_NOIMG as string : postImgPath,
+                postImg: (croppedImgPath) ? croppedImgPath : (postImgUrl === noPostImgUrl) ? process.env.REACT_APP_NOIMG : post?.postImg,
             };
 
             // If original image hasn't been affected - do not delete the current image.
-            const oldPostImgQuery = (postImgUrl !== noPostImgUrl) ? postImgPath : "";
+            const oldPostImgQuery = post?.postImg !== (process.env.REACT_APP_NOIMG) ? post?.postImg : "";
 
             const resultData = idFromLink
                 ? await updatePost({ id: idFromLink, oldPostImgQuery, body }).unwrap()
@@ -137,6 +138,27 @@ export const CreatePost = () => {
         finally { setIsCreatingPost(false); }
     };
     //----------------------------------------------------------------------------------------------------------------
+
+
+    
+    const handleImageChange = () => {
+        if (!inputFileRef.current?.files) return;
+
+        // Size check
+        if (inputFileRef.current.files[0].size > 26214400) { return setImgExtError("Image size can't be higher than 25 megabytes"); }
+        else if (imgExtError) { setImgExtError(""); }
+
+        // Image extension check
+        const extensionError = checkImageExtension(inputFileRef.current.files[0].type);
+
+        if (extensionError) {
+            setImgExtError(`Only ${extensionError} files are allowed.`);
+        }
+        else {
+            setImgExtError("");
+            setPostImgUrl(URL.createObjectURL(inputFileRef.current.files[0]));
+        }
+    };
 
 
 
@@ -154,20 +176,7 @@ export const CreatePost = () => {
                 </div>
                 {imgExtError && <p className="create-post__error">{imgExtError}</p>}
 
-                <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={(e) => {
-                    if (!inputFileRef.current?.files) return;
-
-                    // Size check
-                    if (inputFileRef.current.files[0].size > 26214400) { return setImgExtError("Image size can't be higher than 25 megabytes"); }
-                    else if (imgExtError) { setImgExtError(""); }
-
-                    // Extension check
-                    const allowedExtensions = ["image/png", "image/jpg", "image/jpeg", "image/webp", "image/gif"];
-                    if (!allowedExtensions.includes(inputFileRef.current.files[0].type)) { return setImgExtError("Only JPG/JPEG, PNG, WEBP and GIF files are allowed"); }
-                    else if (imgExtError) { setImgExtError(""); }
-
-                    setPostImgUrl(URL.createObjectURL(inputFileRef.current.files[0]));
-                }} />
+                <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={handleImageChange} />
 
                 {(postImgUrl && postImgUrl !== noPostImgUrl)
                     ? <button type="button" onClick={() => { setPostImgUrl(noPostImgUrl); inputFileRef.current!.value = ""; }}>Delete preview image</button>
@@ -188,7 +197,7 @@ export const CreatePost = () => {
             </form>
 
             {noTextError.status && <p className="create-post-editor__text-error"> {noTextError.message}</p>}
-            <SimpleMDE className="create-post-editor" value={text} onChange={simpleMdeOnChange} options={simpleMdeOptions} />
+            <SimpleMDE className="create-post-editor" value={text} onChange={handleSimpleMdeChange} options={simpleMdeOptions} />
 
             <div className="create-post-create-cancel">
                 {!isCreatingPost

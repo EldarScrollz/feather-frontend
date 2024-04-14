@@ -70,7 +70,7 @@ export const postsApi = featherApi.injectEndpoints({
         }),
 
         getTopTags: builder.query<string[], void>({
-            query: () => '/v1/posts/topTags'
+            query: () => '/v1/posts/top-tags'
         })
     })
 });

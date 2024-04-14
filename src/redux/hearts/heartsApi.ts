@@ -13,7 +13,7 @@ const heartsApi = featherApi.injectEndpoints({
             providesTags: (result, error, postId) => [{ type: 'Heart', id: postId }]
         }),
         hasUserHeartedPost: builder.query<IHeart, { postId: string | undefined, userId: string | undefined; }>({
-            query: ({ postId, userId }) => `/v1/hearts/hasUserHeart/${postId}/${userId}`,
+            query: ({ postId, userId }) => `/v1/hearts/has-user-heart/${postId}/${userId}`,
             providesTags: (result, error, args) => [{ type: 'Heart', id: args.postId }]
         }),
 

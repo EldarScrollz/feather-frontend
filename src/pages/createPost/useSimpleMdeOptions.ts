@@ -1,8 +1,7 @@
 import EasyMDE from "easymde";
 import { useMemo } from "react";
 
-export const useSimpleMdeOptions = () =>
-{
+export const useSimpleMdeOptions = () => {
     return useMemo(
         () => ({
             spellChecker: false,
@@ -53,8 +52,8 @@ export const useSimpleMdeOptions = () =>
                         className: "none",
                         text: "OL",
                         title: "Ordered List",
-                    } as EasyMDE.ToolbarIcon,
+                    },
                 ]
-        } as EasyMDE.Options),
+        }),
         [],);
-}
+};

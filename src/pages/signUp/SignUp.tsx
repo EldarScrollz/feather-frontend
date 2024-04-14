@@ -2,6 +2,7 @@ import "./SignUp.scss";
 import "../../utils/imgCropper.scss";
 
 import { uploadImage } from "../../utils/uploadImage";
+import { checkImageExtension } from "../../utils/checkImageExtension";
 import Cropper, { Area } from "react-easy-crop";
 import { returnCroppedImage } from "../../utils/returnCroppedImage";
 
@@ -12,9 +13,9 @@ import { useRef, useState } from "react";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-import { isCurrentUserSignedIn, setUserData } from "../../redux/auth/authSlice";
+import { isCurrentUserSignedIn, setUserData } from "../../redux/user/userSlice";
 import { Navigate } from "react-router-dom";
-import { useSignUpUserMutation } from "../../redux/auth/authApi";
+import { useSignUpUserMutation } from "../../redux/user/userApi";
 
 
 
@@ -23,7 +24,7 @@ export const SignUp = () => {
     const isUserSignedIn = useAppSelector(isCurrentUserSignedIn);
     const [signUpUser] = useSignUpUserMutation();
 
-    const noAvatarUrl = process.env.REACT_APP_BACKEND as string + process.env.REACT_APP_NOIMG as string;
+    const noAvatarUrl = process.env.REACT_APP_BACKEND + process.env.REACT_APP_NOIMG;
     const [avatarUrl, setAvatarUrl] = useState(noAvatarUrl);
 
     const inputFileRef = useRef<HTMLInputElement>(null);
@@ -60,8 +61,8 @@ export const SignUp = () => {
         if (!inputFileRef.current?.files) return;
 
         try {
-            const imgPath = await uploadImage(croppedAvatarFile as File);
-            const props = { ...onSubmitValues, userAvatar: (avatarUrl === noAvatarUrl) ? process.env.REACT_APP_NOIMG as string : imgPath };
+            const imgPath = await uploadImage(croppedAvatarFile);
+            const props = { ...onSubmitValues, userAvatar: (avatarUrl === noAvatarUrl) ? process.env.REACT_APP_NOIMG : imgPath };
             const userData = await signUpUser({ ...props }).unwrap();
             window.localStorage.setItem("wasUserSignedIn", "true"); // prevents flickering of navbar
             await dispatch(setUserData(userData));
@@ -69,6 +70,28 @@ export const SignUp = () => {
             const serverError = (error as { data: { errorMessage: string; }; }).data.errorMessage;
             if (serverError) setEmailNameError(serverError);
             else console.error("Could not sign up!", error);
+        }
+    };
+
+
+
+    const handleImageChange = (input: React.ChangeEvent<HTMLInputElement>) => {
+        if (!inputFileRef.current?.files) return;
+
+        // Size check
+        if (inputFileRef.current?.files[0]?.size > 26214400) { return setImgExtError("Image size can't be higher than 25 megabytes"); }
+        else if (imgExtError) { setImgExtError(""); }
+
+        // Image extension check
+        const extensionError = checkImageExtension(inputFileRef.current.files[0].type);
+
+        if (extensionError) {
+            setImgExtError(`Only ${extensionError} files are allowed.`);
+        }
+        else {
+            setImgExtError("");
+            setIsCroppingImg(true);
+            input.currentTarget.files && setNewAvatarBlobToCrop(URL.createObjectURL(input.currentTarget.files[0]));
         }
     };
 
@@ -118,21 +141,7 @@ export const SignUp = () => {
                     : <button type="button" onClick={() => inputFileRef.current?.click()}>Select avatar</button>
                 }
 
-                <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={(e) => {
-                    if (!inputFileRef.current?.files) return;
-
-                    // Size check
-                    if (inputFileRef.current?.files[0]?.size > 26214400) { return setImgExtError("Image size can't be higher than 25 megabytes"); }
-                    else if (imgExtError) { setImgExtError(""); }
-
-                    // Extension check
-                    const allowedExtensions = ["image/png", "image/jpg", "image/jpeg", "image/gif"];
-                    if (!allowedExtensions.includes(inputFileRef.current?.files[0]?.type)) { return setImgExtError("Only JPG/JPEG, PNG and GIF files are allowed"); }
-                    else if (imgExtError) { setImgExtError(""); }
-
-                    setIsCroppingImg(true);
-                    e.currentTarget.files && setNewAvatarBlobToCrop(URL.createObjectURL(e.currentTarget.files[0]));
-                }} />
+                <input ref={inputFileRef} type="file" accept="image/*" name="image" hidden onChange={(e) => handleImageChange(e)} />
 
                 {errors.email?.message && <p className="sign-up__error">{errors.email?.message}</p>}
                 <input
