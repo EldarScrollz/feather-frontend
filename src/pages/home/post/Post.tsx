@@ -9,6 +9,7 @@ import { IPost } from "../../../models/IPost";
 
 import { useAppSelector } from "../../../redux/hooks";
 import { useDeletePostMutation } from "../../../redux/posts/postsApi";
+import { selectIsUserSignedIn } from "../../../redux/user/userSlice";
 import { useCreateHeartMutation, useDeleteHeartMutation, useHasUserHeartedPostQuery } from "../../../redux/hearts/heartsApi";
 
 import { useState } from "react";
@@ -28,6 +29,7 @@ export const Post = ({ post }: IPostProps) => {
     const moddedDate = formatRelativeTime(new Date(post.createdAt));
 
     const userData = useAppSelector((state) => state.auth.userData);
+    const isUserSignedIn = useAppSelector(selectIsUserSignedIn);
 
     const { data: hasUserHearted, isLoading: isLoadingHasUserHearted, isFetching: isFetchingHasUserHearted } = useHasUserHeartedPostQuery(
         { postId: post._id, userId: userData?._id },
@@ -58,6 +60,8 @@ export const Post = ({ post }: IPostProps) => {
 
 
     const addRemoveHeart = async () => {
+        if (!isUserSignedIn) return;
+
         setIsHeartSpinner(true);
 
         try {
@@ -73,7 +77,7 @@ export const Post = ({ post }: IPostProps) => {
 
     if (!showPost) { return <></>; }
 
-    
+
 
     return (
         <>

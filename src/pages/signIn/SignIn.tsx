@@ -6,7 +6,7 @@ import { Navigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useSignInUserMutation } from "../../redux/user/userApi";
-import { isCurrentUserSignedIn, setUserData } from "../../redux/user/userSlice";
+import { selectIsUserSignedIn, setUserData } from "../../redux/user/userSlice";
 
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -17,7 +17,7 @@ export const SignIn = () => {
     const [isUser404, setIsUser404] = useState(false);
 
     const dispatch = useAppDispatch();
-    const isUserSignedIn = useAppSelector(isCurrentUserSignedIn);
+    const isUserSignedIn = useAppSelector(selectIsUserSignedIn);
     const [signInUser] = useSignInUserMutation();
 
 

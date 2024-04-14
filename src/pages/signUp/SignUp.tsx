@@ -13,7 +13,7 @@ import { useRef, useState } from "react";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-import { isCurrentUserSignedIn, setUserData } from "../../redux/user/userSlice";
+import { selectIsUserSignedIn, setUserData } from "../../redux/user/userSlice";
 import { Navigate } from "react-router-dom";
 import { useSignUpUserMutation } from "../../redux/user/userApi";
 
@@ -21,7 +21,7 @@ import { useSignUpUserMutation } from "../../redux/user/userApi";
 
 export const SignUp = () => {
     const dispatch = useAppDispatch();
-    const isUserSignedIn = useAppSelector(isCurrentUserSignedIn);
+    const isUserSignedIn = useAppSelector(selectIsUserSignedIn);
     const [signUpUser] = useSignUpUserMutation();
 
     const noAvatarUrl = process.env.REACT_APP_BACKEND + process.env.REACT_APP_NOIMG;

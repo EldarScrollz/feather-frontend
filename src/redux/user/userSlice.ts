@@ -30,7 +30,7 @@ const authSlice = createSlice(
 
 
 
-export const isCurrentUserSignedIn = (state: RootState) => { if (state.auth.userData) { return true; } else { return false; } };
+export const selectIsUserSignedIn = (state: RootState) => { if (state.auth.userData) { return true; } else { return false; } };
 
 export const authReducer = authSlice.reducer;
 export const { setUserData, signOut } = authSlice.actions;
